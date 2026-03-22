@@ -1,0 +1,34 @@
+<div>
+  <app-header [title]="'Manage Payments'" [subtitle]="'Verify and manage all payments'" [userName]="userName" [userInitials]="userInitials"></app-header>
+  <div class="p-8 bg-gray-100">
+    <div class="card bg-base-100 shadow-md rounded-xl">
+      <div class="card-body p-6">
+        <h2 class="text-xl font-semibold text-dark-gray mb-4">All Payments ({{ payments.length }})</h2>
+        <div class="overflow-x-auto">
+          <table class="table w-full">
+            <thead><tr class="text-sm text-medium-gray"><th>User</th><th>Amount</th><th>Month</th><th>Method</th><th>Reference</th><th>Date</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody>
+              <tr *ngFor="let p of payments" class="hover">
+                <td class="text-sm">{{ p.user_name }}<br><span class="text-xs text-gray-400">{{ p.user_email }}</span></td>
+                <td class="text-sm font-semibold">₦{{ p.amount | number }}</td>
+                <td class="text-sm">{{ p.billing_month }}</td>
+                <td class="text-sm capitalize">{{ p.payment_method }}</td>
+                <td class="text-sm font-mono">{{ p.reference_number || '-' }}</td>
+                <td class="text-sm">{{ p.created_at | date:'short' }}</td>
+                <td><span class="badge border-none rounded-full px-3 py-1 text-xs font-medium" [ngClass]="getStatusClass(p.status)">{{ p.status }}</span></td>
+                <td>
+                  <div *ngIf="p.status === 'pending'" class="flex gap-1">
+                    <button (click)="verify(p.id, 'verified')" class="btn btn-xs bg-emerald-500 text-white border-none rounded-lg">Verify</button>
+                    <button (click)="verify(p.id, 'rejected')" class="btn btn-xs btn-outline border-red-400 text-red-500 rounded-lg">Reject</button>
+                  </div>
+                  <span *ngIf="p.status !== 'pending'" class="text-xs text-gray-400">Done</span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          <div *ngIf="payments.length === 0" class="text-center py-8"><p class="text-medium-gray">No payments found.</p></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

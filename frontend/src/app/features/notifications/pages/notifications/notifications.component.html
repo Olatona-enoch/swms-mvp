@@ -1,0 +1,117 @@
+<div>
+  <app-header 
+    [title]="'Notifications'" 
+    [subtitle]="'Your updates and alerts'"
+    [userName]="userName"
+    [userInitials]="userInitials">
+  </app-header>
+
+  <div class="p-8 bg-gray-100">
+    <div class="max-w-5xl mx-auto">
+      <div class="card bg-base-100 shadow-md rounded-xl">
+        <div class="card-body p-6">
+          <div class="flex items-center justify-between mb-6">
+            <h2 class="text-xl font-semibold text-dark-gray">All Notifications</h2>
+            <button 
+              *ngIf="notifications.length"
+              (click)="markAllAsRead()"
+              class="btn btn-ghost btn-sm text-custom-green hover:text-emerald-600 hover:bg-emerald-50">
+              Mark all as read
+            </button>
+          </div>
+
+          <div class="space-y-3">
+            <div 
+              *ngFor="let notification of notifications"
+              class="rounded-xl border transition-all cursor-pointer overflow-hidden"
+              [class.bg-emerald-50]="!notification.read"
+              [class.border-emerald-200]="!notification.read"
+              [class.bg-white]="notification.read"
+              [class.border-gray-100]="notification.read"
+              [class.hover:border-emerald-300]="!notification.read"
+              [class.hover:border-gray-200]="notification.read">
+              
+              
+              <div class="flex items-center justify-between p-4 overflow-hidden" (click)="onNotificationClick(notification)">
+                <div class="flex items-center gap-4 flex-1 min-w-0 overflow-hidden">
+                  <div class="relative flex-shrink-0">
+                    <div 
+                      class="w-10 h-10 rounded-full flex items-center justify-center"
+                      [ngClass]="{
+                        'bg-emerald-100': notification.type === 'success',
+                        'bg-amber-100': notification.type === 'warning',
+                        'bg-blue-100': notification.type === 'info'
+                      }">
+                      <svg *ngIf="notification.type === 'success'" class="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                      </svg>
+                      <svg *ngIf="notification.type === 'warning'" class="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                      </svg>
+                      <svg *ngIf="notification.type === 'info'" class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                      </svg>
+                    </div>
+                    <span *ngIf="!notification.read" class="absolute -top-0.5 -right-0.5 w-3 h-3 bg-custom-green rounded-full border-2 border-white"></span>
+                  </div>
+
+                  <div class="flex-1 min-w-0 overflow-hidden">
+                    <h3 class="text-sm text-dark-gray truncate" [class.font-semibold]="!notification.read" [class.font-medium]="notification.read">
+                      {{ notification.title }}
+                    </h3>
+                    <p class="text-sm text-medium-gray truncate">{{ notification.description.split('\n')[0] }}</p>
+                  </div>
+                </div>
+
+                <div class="flex items-center gap-2 flex-shrink-0 ml-4">
+                  <span class="text-xs text-light-gray whitespace-nowrap">{{ notification.time }}</span>
+                  <svg class="w-4 h-4 text-gray-300 transition-transform" 
+                    [class.rotate-180]="expandedId === notification.id"
+                    fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                  </svg>
+                </div>
+              </div>
+              <div *ngIf="expandedId === notification.id" class="px-4 pb-4 pt-0">
+                <div class="ml-14 border-t pt-3" [class.border-emerald-200]="!notification.read" [class.border-gray-100]="notification.read">
+                  <div class="space-y-1.5 mb-3">
+                    <p *ngFor="let line of notification.description.split('\n')" class="text-sm text-dark-gray">
+                      <span *ngIf="line.startsWith('Notes:')" class="font-semibold text-amber-600">{{ line }}</span>
+                      <span *ngIf="line.startsWith('Location:')" class="font-medium text-medium-gray">{{ line }}</span>
+                      <span *ngIf="line.startsWith('Reference:')" class="font-mono text-xs text-medium-gray">{{ line }}</span>
+                      <span *ngIf="!line.startsWith('Notes:') && !line.startsWith('Location:') && !line.startsWith('Reference:')">{{ line }}</span>
+                    </p>
+                  </div>
+                  <div class="flex items-center gap-3 flex-wrap">
+                    <span class="text-xs text-gray-400">{{ formatFullDate(notification.created_at) }}</span>
+                    <span class="badge text-xs border-none rounded-full px-2 py-1"
+                      [ngClass]="{
+                        'bg-emerald-100 text-emerald-700': notification.type === 'success',
+                        'bg-amber-100 text-amber-700': notification.type === 'warning',
+                        'bg-blue-100 text-blue-700': notification.type === 'info'
+                      }">{{ notification.type }}</span>
+                    <button *ngIf="notification.route" 
+                      (click)="goToAction(notification); $event.stopPropagation()"
+                      class="btn btn-sm bg-custom-green hover:bg-emerald-600 text-white border-none rounded-lg normal-case gap-1">
+                      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path></svg>
+                      {{ getActionLabel(notification) }}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div *ngIf="notifications.length === 0" class="text-center py-12">
+              <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg class="w-8 h-8 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
+                </svg>
+              </div>
+              <p class="text-medium-gray">No notifications yet.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

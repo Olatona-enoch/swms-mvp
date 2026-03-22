@@ -1,0 +1,33 @@
+<div>
+  <app-header [title]="'Bin Reports'" [subtitle]="'View and manage all bin reports'" [userName]="userName" [userInitials]="userInitials"></app-header>
+  <div class="p-8 bg-gray-100">
+    <div class="card bg-base-100 shadow-md rounded-xl">
+      <div class="card-body p-6">
+        <h2 class="text-xl font-semibold text-dark-gray mb-4">All Reports ({{ reports.length }})</h2>
+        <div class="overflow-x-auto">
+          <table class="table w-full">
+            <thead><tr class="text-sm text-medium-gray"><th>User</th><th>Bin Code</th><th>Issue</th><th>Location</th><th>Notes</th><th>Date</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody>
+              <tr *ngFor="let r of reports" class="hover">
+                <td class="text-sm">{{ r.user_name }}</td>
+                <td class="text-sm font-mono">{{ r.bin_code || '-' }}</td>
+                <td class="text-sm capitalize">{{ r.issue_type }}</td>
+                <td class="text-sm">{{ r.location }}</td>
+                <td class="text-sm max-w-48 truncate">{{ r.notes || '-' }}</td>
+                <td class="text-sm">{{ r.created_at | date:'short' }}</td>
+                <td><span class="badge border-none rounded-full px-3 py-1 text-xs font-medium" [ngClass]="getStatusClass(r.status)">{{ r.status }}</span></td>
+                <td>
+                  <div class="flex gap-1">
+                    <button *ngIf="r.status === 'pending'" (click)="updateStatus(r.id, 'assigned')" class="btn btn-xs btn-outline rounded-lg">Assign</button>
+                    <button *ngIf="r.status !== 'resolved'" (click)="updateStatus(r.id, 'resolved')" class="btn btn-xs bg-emerald-500 text-white border-none rounded-lg">Resolve</button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          <div *ngIf="reports.length === 0" class="text-center py-8"><p class="text-medium-gray">No reports found.</p></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

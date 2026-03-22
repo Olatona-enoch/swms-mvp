@@ -1,0 +1,324 @@
+<div>
+  <app-header 
+    [title]="'Settings'" 
+    [subtitle]="'Manage your account preferences'"
+    [userName]="userName"
+    [userInitials]="userInitials">
+  </app-header>
+
+  <div class="p-8 bg-gray-100">
+    <div class="max-w-5xl mx-auto space-y-8">
+      <div class="card bg-base-100 shadow-md rounded-xl">
+        <div class="card-body p-6">
+          <h2 class="text-xl font-semibold text-dark-gray mb-5">Profile Information</h2>
+          
+          <form [formGroup]="profileForm">
+            <div class="space-y-5">
+              
+              <div>
+                <label for="fullName" class="block text-sm font-medium text-dark-gray mb-2">
+                  Full Name
+                </label>
+                <input
+                  type="text"
+                  id="fullName"
+                  formControlName="fullName"
+                  class="input input-bordered w-full rounded-lg"
+                  [class.input-error]="isFieldInvalid('fullName', profileForm, isProfileSubmitted)"
+                  placeholder="Enter your full name">
+                <div *ngIf="isFieldInvalid('fullName', profileForm, isProfileSubmitted)" class="text-error text-sm mt-1">
+                  This field is required.
+                </div>
+              </div>
+
+              <div>
+                <label for="email" class="block text-sm font-medium text-dark-gray mb-2">
+                  Email Address
+                </label>
+                <input
+                  type="email"
+                  id="email"
+                  formControlName="email"
+                  class="input input-bordered w-full rounded-lg"
+                  [class.input-error]="isFieldInvalid('email', profileForm, isProfileSubmitted)"
+                  placeholder="Enter your email">
+                <div *ngIf="isFieldInvalid('email', profileForm, isProfileSubmitted)" class="text-error text-sm mt-1">
+                  <span *ngIf="profileForm.get('email')?.hasError('required')">This field is required.</span>
+                  <span *ngIf="profileForm.get('email')?.hasError('email')">Enter a valid email address.</span>
+                </div>
+              </div>
+
+              <div>
+                <label for="phone" class="block text-sm font-medium text-dark-gray mb-2">
+                  Phone Number
+                </label>
+                <input
+                  type="tel"
+                  id="phone"
+                  formControlName="phone"
+                  class="input input-bordered w-full rounded-lg"
+                  [class.input-error]="isFieldInvalid('phone', profileForm, isProfileSubmitted)"
+                  placeholder="Enter your phone number">
+                <div *ngIf="isFieldInvalid('phone', profileForm, isProfileSubmitted)" class="text-error text-sm mt-1">
+                  <span *ngIf="profileForm.get('phone')?.hasError('required')">This field is required.</span>
+                  <span *ngIf="profileForm.get('phone')?.hasError('minlength')">Minimum length not met.</span>
+                </div>
+              </div>
+
+              <div>
+                <label for="homeAddress" class="block text-sm font-medium text-dark-gray mb-2">
+                  Home Address
+                </label>
+                <input
+                  type="text"
+                  id="homeAddress"
+                  formControlName="homeAddress"
+                  class="input input-bordered w-full rounded-lg"
+                  [class.input-error]="isFieldInvalid('homeAddress', profileForm, isProfileSubmitted)"
+                  placeholder="Enter your home address">
+                <div *ngIf="isFieldInvalid('homeAddress', profileForm, isProfileSubmitted)" class="text-error text-sm mt-1">
+                  This field is required.
+                </div>
+              </div>
+
+            </div>
+
+            <div class="mt-6">
+              <div *ngIf="profileMessage" class="bg-emerald-50 border-l-4 border-emerald-400 rounded-lg p-3 mb-3">
+                <p class="text-sm text-emerald-600">{{ profileMessage }}</p>
+              </div>
+              <button 
+                type="button"
+                (click)="onProfileAction()"
+                [disabled]="isEditingProfile && profileForm.invalid"
+                class="btn bg-emerald-500 hover:bg-emerald-600 text-white border-none w-full rounded-xl">
+                {{ isEditingProfile ? 'Save Changes' : 'Edit Information' }}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+      
+        <div class="card bg-base-100 shadow-md rounded-xl">
+            <div class="card-body p-6">
+                <h2 class="text-lg font-semibold text-base-content mb-5">Security</h2>
+                
+                <form [formGroup]="passwordForm" (ngSubmit)="onPasswordUpdate()">
+                    <div class="space-y-5">
+                        
+                        <div>
+                            <label for="currentPassword" class="block text-sm font-medium text-base-content mb-2">
+                                Current Password
+                            </label>
+                            <div class="relative">
+                                <input
+                                [type]="showCurrentPassword ? 'text' : 'password'"
+                                id="currentPassword"
+                                formControlName="currentPassword"
+                                class="input input-bordered w-full rounded-lg pr-12"
+                                [class.input-error]="isFieldInvalid('currentPassword', passwordForm, isPasswordSubmitted)"
+                                placeholder="Enter current password">
+                                <button
+                                type="button"
+                                (click)="togglePasswordVisibility('current')"
+                                class="absolute inset-y-0 right-0 pr-3 flex items-center">
+                                <svg *ngIf="!showCurrentPassword" class="w-5 h-5 text-gray-400 hover:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                </svg>
+                                <svg *ngIf="showCurrentPassword" class="w-5 h-5 text-gray-400 hover:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"></path>
+                                </svg>
+                                </button>
+                            </div>
+                            <div *ngIf="isFieldInvalid('currentPassword', passwordForm, isPasswordSubmitted)" class="text-error text-sm mt-1">
+                                This field is required.
+                            </div>
+                        </div>
+
+                        <div>
+                        <label for="newPassword" class="block text-sm font-medium text-base-content mb-2">
+                            New Password
+                        </label>
+                        <div class="relative">
+                            <input
+                            [type]="showNewPassword ? 'text' : 'password'"
+                            id="newPassword"
+                            formControlName="newPassword"
+                            class="input input-bordered w-full rounded-lg pr-12"
+                            [class.input-error]="isFieldInvalid('newPassword', passwordForm, isPasswordSubmitted)"
+                            placeholder="Enter new password">
+                            <button
+                            type="button"
+                            (click)="togglePasswordVisibility('new')"
+                            class="absolute inset-y-0 right-0 pr-3 flex items-center">
+                            <svg *ngIf="!showNewPassword" class="w-5 h-5 text-gray-400 hover:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                            </svg>
+                            <svg *ngIf="showNewPassword" class="w-5 h-5 text-gray-400 hover:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"></path>
+                            </svg>
+                            </button>
+                        </div>
+                        <div *ngIf="isFieldInvalid('newPassword', passwordForm, isPasswordSubmitted)" class="text-error text-sm mt-1">
+                            <span *ngIf="passwordForm.get('newPassword')?.hasError('required')">This field is required.</span>
+                            <span *ngIf="passwordForm.get('newPassword')?.hasError('minlength')">Minimum length not met.</span>
+                        </div>
+                        </div>
+
+                        <div>
+                        <label for="confirmPassword" class="block text-sm font-medium text-base-content mb-2">
+                            Confirm New Password
+                        </label>
+                        <div class="relative">
+                            <input
+                            [type]="showConfirmPassword ? 'text' : 'password'"
+                            id="confirmPassword"
+                            formControlName="confirmPassword"
+                            class="input input-bordered w-full rounded-lg pr-12"
+                            [class.input-error]="isFieldInvalid('confirmPassword', passwordForm, isPasswordSubmitted) || passwordForm.hasError('passwordMismatch')"
+                            placeholder="Confirm new password">
+                            <button
+                            type="button"
+                            (click)="togglePasswordVisibility('confirm')"
+                            class="absolute inset-y-0 right-0 pr-3 flex items-center">
+                            <svg *ngIf="!showConfirmPassword" class="w-5 h-5 text-gray-400 hover:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                            </svg>
+                            <svg *ngIf="showConfirmPassword" class="w-5 h-5 text-gray-400 hover:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"></path>
+                            </svg>
+                            </button>
+                        </div>
+                        <div *ngIf="isFieldInvalid('confirmPassword', passwordForm, isPasswordSubmitted)" class="text-error text-sm mt-1">
+                            This field is required.
+                        </div>
+                        <div *ngIf="passwordForm.hasError('passwordMismatch') && (passwordForm.get('confirmPassword')?.touched || isPasswordSubmitted)" class="text-error text-sm mt-1">
+                            Passwords do not match.
+                        </div>
+                        </div>
+
+                    </div>
+
+                    <div class="mt-6">
+                        <div *ngIf="passwordMessage" class="rounded-lg p-3 mb-3 border-l-4"
+                          [ngClass]="passwordIsError ? 'bg-red-50 border-red-400' : 'bg-emerald-50 border-emerald-400'">
+                          <p class="text-sm" [ngClass]="passwordIsError ? 'text-red-600' : 'text-emerald-600'">{{ passwordMessage }}</p>
+                        </div>
+                        <button 
+                        type="submit"
+                        [disabled]="passwordForm.invalid"
+                        class="btn bg-emerald-500 hover:bg-emerald-600 text-white border-none w-full rounded-xl">
+                        Update Password
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+      <div class="card bg-base-100 shadow-md rounded-xl">
+        <div class="card-body p-6">
+          <h2 class="text-lg font-semibold text-dark-gray mb-5">Notification Preferences</h2>
+          
+          <div class="space-y-5">
+            
+            <div class="flex items-center justify-between py-3">
+              <div>
+                <p class="text-sm font-medium text-dark-gray">Pickup reminders</p>
+                <p class="text-xs text-light-gray mt-1">Get notified before scheduled pickups</p>
+              </div>
+              <input 
+                type="checkbox" 
+                [(ngModel)]="notifications.pickupReminders"
+                class="toggle toggle-success">
+            </div>
+
+            <div class="divider my-0"></div>
+
+            <div class="flex items-center justify-between py-3">
+              <div>
+                <p class="text-sm font-medium text-dark-gray">Payment updates</p>
+                <p class="text-xs text-light-gray mt-1">Receive payment confirmations and reminders</p>
+              </div>
+              <input 
+                type="checkbox" 
+                [(ngModel)]="notifications.paymentUpdates"
+                class="toggle toggle-success">
+            </div>
+
+            <div class="divider my-0"></div>
+
+            <div class="flex items-center justify-between py-3">
+              <div>
+                <p class="text-sm font-medium text-dark-gray">Bin report updates</p>
+                <p class="text-xs text-light-gray mt-1">Get updates on your reported bin issues</p>
+              </div>
+              <input 
+                type="checkbox" 
+                [(ngModel)]="notifications.binReportUpdates"
+                class="toggle toggle-success">
+            </div>
+
+            <div class="divider my-0"></div>
+
+            <div class="flex items-center justify-between py-3">
+              <div>
+                <p class="text-sm font-medium text-dark-gray">System announcements</p>
+                <p class="text-xs text-light-gray mt-1">Receive important system updates</p>
+              </div>
+              <input 
+                type="checkbox" 
+                [(ngModel)]="notifications.systemAnnouncements"
+                class="toggle toggle-success">
+            </div>
+
+          </div>
+        </div>
+      </div>
+      <div class="card bg-base-100 shadow-md rounded-xl">
+        <div class="card-body p-6">
+          <h2 class="text-lg font-semibold text-dark-gray mb-5">Account Actions</h2>
+          
+          <div class="space-y-4">
+            
+            
+            <button 
+              (click)="onLogout()"
+              class="btn bg-emerald-500 hover:bg-emerald-600 text-white border-none w-full rounded-xl flex items-center justify-center gap-2">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+              </svg>
+              <span>Logout</span>
+            </button>
+
+            <button 
+              (click)="onDeleteAccount()"
+              class="btn btn-outline border-custom-red text-custom-red hover:bg-custom-red hover:text-white w-full rounded-xl flex items-center justify-center gap-2">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+              </svg>
+              <span>Delete Account</span>
+            </button>
+
+            <div class="bg-red-50 border-l-4 border-red-400 rounded-lg p-4 mt-4">
+              <div class="flex items-start gap-2">
+                <svg class="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                </svg>
+                <div>
+                  <p class="text-sm font-semibold text-custom-red mb-1">Warning:</p>
+                  <p class="text-xs text-custom-red">
+                    Deleting your account is permanent and cannot be undone. All your data will be removed.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>

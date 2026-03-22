@@ -1,0 +1,10 @@
+<div *ngIf="!showSidebar" class="font-poppins">
+  <router-outlet></router-outlet>
+</div>
+
+<div *ngIf="showSidebar" class="flex min-h-screen font-poppins">
+  <app-sidebar></app-sidebar>
+  <main class="flex-1 overflow-auto">
+    <router-outlet></router-outlet>
+  </main>
+</div>

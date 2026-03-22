@@ -1,0 +1,275 @@
+<div>
+  <app-header [title]="'Payments'" [subtitle]="'Manage your waste collection payments'" [userName]="userName" [userInitials]="userInitials"></app-header>
+
+  <div class="p-8 bg-gray-100">
+    <!-- Tabs -->
+    <div class="max-w-3xl mx-auto mb-6">
+      <div class="flex gap-1 bg-white rounded-xl p-1 shadow-sm w-fit">
+        <button (click)="switchTab('pay')" class="px-5 py-2.5 rounded-lg text-sm font-medium transition-all"
+          [class.bg-custom-green]="activeTab === 'pay'" [class.text-white]="activeTab === 'pay'"
+          [class.text-medium-gray]="activeTab !== 'pay'">Make Payment</button>
+        <button (click)="switchTab('history')" class="px-5 py-2.5 rounded-lg text-sm font-medium transition-all"
+          [class.bg-custom-green]="activeTab === 'history'" [class.text-white]="activeTab === 'history'"
+          [class.text-medium-gray]="activeTab !== 'history'">
+          Payment History
+          <span *ngIf="allPayments.length" class="ml-1.5 text-xs px-1.5 py-0.5 rounded-full"
+            [ngClass]="activeTab === 'history' ? 'bg-white bg-opacity-20' : 'bg-gray-100'">{{ allPayments.length }}</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- pay tab -->
+    <div *ngIf="activeTab === 'pay'">
+      <div *ngIf="paymentState === 'plan'" class="max-w-3xl mx-auto">
+        <div class="card bg-base-100 shadow-md rounded-xl">
+          <div class="card-body p-6">
+            <h2 class="text-lg font-semibold text-dark-gray mb-1">Monthly Subscription</h2>
+            <p class="text-sm text-medium-gray mb-4">Subscribe to a plan for unlimited pickups this month. Or pay per-pickup when scheduling.</p>
+            <div class="bg-blue-50 rounded-lg p-3 mb-6">
+              <p class="text-xs text-blue-700"><strong>Why subscribe?</strong> Each plan includes a fixed number of pickups per waste type per month. Buying all 4 types individually always costs more than the equivalent subscription.</p>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
+              <div *ngFor="let plan of plans" (click)="selectPlan(plan)"
+                class="p-4 rounded-xl border-2 cursor-pointer transition-all"
+                [class.border-emerald-500]="selectedPlan?.id === plan.id" [class.bg-emerald-50]="selectedPlan?.id === plan.id"
+                [class.border-gray-200]="selectedPlan?.id !== plan.id" [class.hover:border-emerald-300]="selectedPlan?.id !== plan.id">
+                <div class="flex items-center justify-between mb-2">
+                  <span class="text-sm font-semibold text-dark-gray">{{ plan.name }}</span>
+                  <div class="w-5 h-5 rounded-full border-2 flex items-center justify-center"
+                    [class.border-emerald-500]="selectedPlan?.id === plan.id" [class.border-gray-300]="selectedPlan?.id !== plan.id">
+                    <div *ngIf="selectedPlan?.id === plan.id" class="w-2.5 h-2.5 rounded-full bg-custom-green"></div>
+                  </div>
+                </div>
+                <p class="text-2xl font-bold text-dark-gray mb-1">₦{{ plan.amount | number }}<span class="text-xs font-normal text-medium-gray">/mo</span></p>
+                <p class="text-xs text-medium-gray mb-1">{{ plan.description }}</p>
+                <p *ngIf="plan.maxPickups" class="text-xs text-blue-600 font-medium">{{ plan.maxPickups }} total pickups ({{ plan.perType }} × 4 types)</p>
+                <p *ngIf="plan.savings" class="text-xs text-emerald-600 font-semibold">{{ plan.savings }}</p>
+              </div>
+            </div>
+            
+            <div class="mb-6">
+              <label class="block text-sm font-medium text-dark-gray mb-2">Billing Month</label>
+              <select [(ngModel)]="billingMonth" class="select select-bordered w-full rounded-lg">
+                <option *ngFor="let month of billingMonths" [value]="month">
+                  {{ month }}{{ isMonthPaid(month) ? ' (Paid)' : '' }}{{ isMonthPending(month) ? ' (Pending)' : '' }}
+                </option>
+              </select>
+              <p *ngIf="isMonthPaid(billingMonth)" class="text-xs text-emerald-600 mt-1.5 flex items-center gap-1">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                You've already paid for this month. You can still make additional payments if needed.
+              </p>
+              <p *ngIf="isMonthPending(billingMonth)" class="text-xs text-amber-600 mt-1.5 flex items-center gap-1">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                A payment for this month is pending verification.
+              </p>
+            </div>
+            <button (click)="onProceedToMethod()" [disabled]="!selectedPlan"
+              class="btn bg-custom-green hover:bg-emerald-600 text-white border-none w-full rounded-xl" [class.btn-disabled]="!selectedPlan">
+              Continue — ₦{{ (selectedPlan?.amount || 0) | number }}/month
+            </button>
+          </div>
+        </div>
+      </div>
+      <div *ngIf="paymentState === 'method'" class="max-w-2xl mx-auto">
+        <div class="card bg-base-100 shadow-md rounded-xl">
+          <div class="card-body p-6">
+            <div class="flex items-center gap-3 mb-6">
+              <button (click)="goBack()" class="btn btn-ghost btn-sm btn-circle"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg></button>
+              <h2 class="text-lg font-semibold text-dark-gray">Choose Payment Method</h2>
+            </div>
+            <div class="bg-emerald-50 rounded-xl p-4 mb-6 flex items-center justify-between">
+              <div><p class="text-xs text-medium-gray">{{ selectedPlan?.name }}</p><p class="text-sm text-medium-gray">{{ billingMonth }}</p></div>
+              <p class="text-2xl font-bold text-custom-green">₦{{ selectedPlan?.amount | number }}</p>
+            </div>
+            <div class="space-y-3">
+              <button (click)="onSelectCard()" class="w-full p-4 rounded-xl border-2 border-gray-200 hover:border-emerald-400 hover:bg-emerald-50 transition-all text-left flex items-center gap-4">
+                <div class="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center flex-shrink-0">
+                  <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg>
+                </div>
+                <div class="flex-1"><p class="text-sm font-semibold text-dark-gray">{{ paystackEnabled ? 'Pay with Paystack' : 'Pay with Card' }}</p><p class="text-xs text-medium-gray">{{ paystackEnabled ? 'Secure payment via Paystack' : 'Debit/credit card — instant verification' }}</p></div>
+                <span class="badge bg-emerald-100 text-emerald-700 border-none text-xs">Recommended</span>
+              </button>
+              <button (click)="onSelectBankTransfer()" class="w-full p-4 rounded-xl border-2 border-gray-200 hover:border-amber-400 hover:bg-amber-50 transition-all text-left flex items-center gap-4">
+                <div class="w-12 h-12 bg-amber-50 rounded-xl flex items-center justify-center flex-shrink-0">
+                  <svg class="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
+                </div>
+                <div class="flex-1"><p class="text-sm font-semibold text-dark-gray">Bank Transfer</p><p class="text-xs text-medium-gray">Transfer to our bank account — manual verification</p></div>
+                <span class="badge bg-amber-100 text-amber-700 border-none text-xs">1-24 hrs</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div *ngIf="paymentState === 'card_form'" class="max-w-md mx-auto">
+        <div class="card bg-base-100 shadow-md rounded-xl">
+          <div class="card-body p-6">
+            <div class="flex items-center gap-3 mb-4">
+              <button (click)="goBack()" class="btn btn-ghost btn-sm btn-circle"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg></button>
+              <h2 class="text-lg font-semibold text-dark-gray">Card Payment</h2>
+            </div>
+            <div class="text-center bg-emerald-50 rounded-xl p-4 mb-5">
+              <p class="text-sm text-medium-gray mb-0.5">Amount to pay</p>
+              <p class="text-2xl font-bold text-custom-green">₦{{ selectedPlan?.amount | number }}</p>
+            </div>
+            <div class="space-y-4">
+              <div><label class="block text-xs font-medium text-medium-gray mb-1">Cardholder Name</label>
+                <input type="text" [(ngModel)]="cardName" class="input input-bordered w-full rounded-lg input-sm" placeholder="Name on card"></div>
+              <div><label class="block text-xs font-medium text-medium-gray mb-1">Card Number</label>
+                <input type="text" [(ngModel)]="cardNumber" (input)="formatCardNumber()" class="input input-bordered w-full rounded-lg input-sm font-mono tracking-wider" placeholder="0000 0000 0000 0000" maxlength="19"></div>
+              <div class="grid grid-cols-2 gap-3">
+                <div><label class="block text-xs font-medium text-medium-gray mb-1">Expiry</label>
+                  <input type="text" [(ngModel)]="cardExpiry" (input)="formatExpiry()" class="input input-bordered w-full rounded-lg input-sm font-mono" placeholder="MM/YY" maxlength="5"></div>
+                <div><label class="block text-xs font-medium text-medium-gray mb-1">CVV</label>
+                  <input type="password" [(ngModel)]="cardCvv" class="input input-bordered w-full rounded-lg input-sm font-mono" placeholder="***" maxlength="4"></div>
+              </div>
+            </div>
+            <div *ngIf="errorMessage" class="bg-red-50 border-l-4 border-red-400 rounded-lg p-3 mt-4"><p class="text-sm text-red-600">{{ errorMessage }}</p></div>
+            <button (click)="onCardSubmit()" class="btn bg-custom-green hover:bg-emerald-600 text-white border-none w-full rounded-xl mt-5">Pay ₦{{ selectedPlan?.amount | number }}</button>
+            <div class="flex items-center justify-center gap-2 mt-3">
+              <svg class="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+              <p class="text-xs text-gray-400">Secured with SSL encryption</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div *ngIf="paymentState === 'processing'" class="max-w-md mx-auto">
+        <div class="card bg-base-100 shadow-md rounded-xl">
+          <div class="card-body p-10 text-center">
+            <div class="w-20 h-20 mx-auto mb-6 relative">
+              <div class="absolute inset-0 border-4 border-emerald-200 rounded-full animate-ping"></div>
+              <div class="w-20 h-20 border-4 border-t-custom-green border-emerald-200 rounded-full animate-spin"></div>
+            </div>
+            <h2 class="text-xl font-semibold text-dark-gray mb-2">Processing Payment...</h2>
+            <p class="text-sm text-medium-gray mb-2">Verifying your card ending in {{ cardNumber.slice(-4) }}</p>
+            <p class="text-xs text-gray-400">This usually takes a few seconds</p>
+          </div>
+        </div>
+      </div>
+      <div *ngIf="paymentState === 'bank_details'" class="max-w-2xl mx-auto">
+        <div class="card bg-base-100 shadow-md rounded-xl">
+          <div class="card-body p-6">
+            <div class="flex items-center gap-3 mb-6">
+              <button (click)="goBack()" class="btn btn-ghost btn-sm btn-circle"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg></button>
+              <h2 class="text-lg font-semibold text-dark-gray">Complete Bank Transfer</h2>
+            </div>
+            <div class="text-center bg-emerald-50 rounded-xl p-5 mb-6">
+              <p class="text-sm text-medium-gray mb-1">Transfer this amount</p>
+              <p class="text-3xl font-bold text-custom-green">₦{{ selectedPlan?.amount | number }}</p>
+              <p class="text-xs text-medium-gray mt-1">{{ selectedPlan?.name }} · {{ billingMonth }}</p>
+            </div>
+            <div class="bg-gray-50 rounded-xl p-5 mb-5 space-y-3">
+              <h3 class="text-sm font-semibold text-dark-gray">Transfer to:</h3>
+              <div><p class="text-xs text-medium-gray mb-0.5">Bank</p><p class="text-sm font-semibold text-dark-gray">EcoBank Nigeria</p></div>
+              <div><p class="text-xs text-medium-gray mb-0.5">Account Name</p><p class="text-sm font-semibold text-dark-gray">Smart Waste Services Ltd</p></div>
+              <div>
+                <p class="text-xs text-medium-gray mb-0.5">Account Number</p>
+                <div class="flex items-center justify-between">
+                  <p class="text-lg font-bold text-dark-gray tracking-wider">0123456789</p>
+                  <button (click)="copyAccountNumber()" class="btn btn-sm rounded-lg gap-1"
+                    [class.btn-outline]="!copiedAccount" [class.btn-success]="copiedAccount" [class.text-white]="copiedAccount">{{ copiedAccount ? 'Copied!' : 'Copy' }}</button>
+                </div>
+              </div>
+              <div><p class="text-xs text-medium-gray mb-0.5">Your Reference</p><p class="text-sm font-mono font-semibold text-dark-gray">{{ referenceNumber }}</p></div>
+            </div>
+            <div class="bg-amber-50 border-l-4 border-amber-400 rounded-lg p-3 mb-5">
+              <p class="text-sm text-medium-gray">Transfer the <strong>exact amount</strong> with the reference above. Verification takes up to 24 hours.</p>
+            </div>
+            <div *ngIf="errorMessage" class="bg-red-50 border-l-4 border-red-400 rounded-lg p-3 mb-4"><p class="text-sm text-red-600">{{ errorMessage }}</p></div>
+            <button (click)="onBankTransferConfirm()" [disabled]="isSubmitting" class="btn bg-custom-green hover:bg-emerald-600 text-white border-none w-full rounded-xl mb-3">{{ isSubmitting ? 'Submitting...' : 'I Have Paid' }}</button>
+            <button (click)="goBack()" class="btn btn-ghost w-full rounded-xl text-medium-gray">Go Back</button>
+          </div>
+        </div>
+      </div>
+      <div *ngIf="paymentState === 'success'" class="max-w-2xl mx-auto">
+        <div class="card bg-base-100 shadow-md rounded-xl">
+          <div class="card-body p-8 text-center">
+            <div class="flex justify-center mb-6">
+              <div class="w-20 h-20 rounded-full flex items-center justify-center"
+                [class.bg-emerald-100]="paymentMethod === 'card'" [class.bg-amber-100]="paymentMethod === 'bank_transfer'">
+                <svg *ngIf="paymentMethod === 'card'" class="w-10 h-10 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                <svg *ngIf="paymentMethod === 'bank_transfer'" class="w-10 h-10 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+              </div>
+            </div>
+            <h2 *ngIf="paymentMethod === 'card'" class="text-2xl font-semibold text-dark-gray mb-2">Payment Confirmed!</h2>
+            <h2 *ngIf="paymentMethod === 'bank_transfer'" class="text-2xl font-semibold text-dark-gray mb-2">Payment Submitted!</h2>
+            <p *ngIf="paymentMethod === 'card'" class="text-sm text-medium-gray mb-6">Your card payment has been verified instantly.</p>
+            <p *ngIf="paymentMethod === 'bank_transfer'" class="text-sm text-medium-gray mb-6">Your bank transfer is pending verification.</p>
+            <div class="bg-gray-50 rounded-xl p-5 mb-6 text-left space-y-3">
+              <div class="flex justify-between"><span class="text-sm text-medium-gray">Plan</span><span class="text-sm font-semibold">{{ selectedPlan?.name }}</span></div>
+              <div class="flex justify-between"><span class="text-sm text-medium-gray">Amount</span><span class="text-sm font-semibold">₦{{ verifiedAmount | number }}</span></div>
+              <div class="flex justify-between"><span class="text-sm text-medium-gray">Month</span><span class="text-sm font-semibold">{{ billingMonth }}</span></div>
+              <div class="flex justify-between">
+                <span class="text-sm text-medium-gray">Status</span>
+                <span *ngIf="paymentMethod === 'card'" class="badge bg-emerald-100 text-emerald-700 border-none text-xs">Verified</span>
+                <span *ngIf="paymentMethod === 'bank_transfer'" class="badge bg-amber-100 text-amber-700 border-none text-xs">Pending</span>
+              </div>
+            </div>
+            <div class="bg-blue-50 rounded-xl p-5 mb-6 text-left">
+              <h3 class="text-sm font-semibold text-dark-gray mb-3">What's next?</h3>
+              <div class="space-y-2">
+                <button (click)="switchTab('history')" class="btn btn-sm bg-white hover:bg-gray-50 text-dark-gray border border-gray-200 rounded-lg w-full justify-start gap-2 normal-case">View payment history</button>
+                <button (click)="goToPickups()" class="btn btn-sm bg-white hover:bg-emerald-50 text-dark-gray border border-gray-200 rounded-lg w-full justify-start gap-2 normal-case">Schedule a pickup</button>
+                <button (click)="makeAnother()" class="btn btn-sm bg-white hover:bg-amber-50 text-dark-gray border border-gray-200 rounded-lg w-full justify-start gap-2 normal-case">Make another payment</button>
+              </div>
+            </div>
+            <button (click)="goToDashboard()" class="btn bg-custom-green hover:bg-emerald-600 text-white border-none w-full rounded-xl">Back to Dashboard</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- history tab -->
+    <div *ngIf="activeTab === 'history'" class="max-w-3xl mx-auto">
+      <div class="card bg-base-100 shadow-md rounded-xl">
+        <div class="card-body p-6">
+          <div class="flex items-center justify-between mb-6">
+            <h2 class="text-lg font-semibold text-dark-gray">Payment History</h2>
+            <button (click)="switchTab('pay'); paymentState = 'plan'" class="btn btn-sm bg-custom-green hover:bg-emerald-600 text-white border-none rounded-lg normal-case gap-1">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+              Make Payment
+            </button>
+          </div>
+          <div *ngIf="paidMonths.size" class="bg-emerald-50 rounded-xl p-4 mb-5">
+            <p class="text-sm font-semibold text-emerald-700 mb-2">Paid Months</p>
+            <div class="flex flex-wrap gap-2">
+              <span *ngFor="let m of paidMonths" class="badge bg-emerald-100 text-emerald-700 border-none text-xs px-3 py-1">{{ m }}</span>
+            </div>
+          </div>
+
+          <div *ngIf="allPayments.length === 0" class="text-center py-12">
+            <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <span class="text-2xl font-bold text-gray-300">₦</span>
+            </div>
+            <p class="text-medium-gray mb-3">No payments yet</p>
+            <button (click)="switchTab('pay')" class="btn btn-sm bg-custom-green hover:bg-emerald-600 text-white border-none rounded-lg normal-case">Make your first payment</button>
+          </div>
+
+          <div *ngIf="allPayments.length" class="space-y-3">
+            <div *ngFor="let payment of allPayments" class="border rounded-xl p-4 hover:bg-gray-50 transition-colors">
+              <div class="flex items-start justify-between">
+                <div class="flex-1">
+                  <div class="flex items-center gap-2 flex-wrap mb-2">
+                    <span class="badge text-xs px-2 py-1 rounded-full border-none" [ngClass]="getStatusClass(payment.status)">{{ payment.status | titlecase }}</span>
+                    <span *ngIf="payment.payment_type === 'per_pickup'" class="badge text-xs px-2 py-1 rounded-full border-none bg-purple-100 text-purple-700">Per-Pickup</span>
+                    <span *ngIf="payment.payment_type !== 'per_pickup'" class="badge text-xs px-2 py-1 rounded-full border-none bg-blue-100 text-blue-700">Subscription</span>
+                    <span class="text-xs text-gray-400">{{ formatDate(payment.created_at) }}</span>
+                  </div>
+                  <p class="text-sm font-semibold text-dark-gray mb-1">₦{{ payment.amount | number }} — {{ payment.billing_month }}</p>
+                  <p class="text-xs text-medium-gray">
+                    {{ payment.payment_method === 'card' ? 'Card Payment' : 'Bank Transfer' }}
+                    · {{ payment.payment_type === 'per_pickup' ? 'Per-Pickup' : 'Monthly Subscription' }}
+                  </p>
+                  <p *ngIf="payment.pickup_id" class="text-xs text-blue-600">Linked to Pickup #{{ payment.pickup_id }}</p>
+                  <p *ngIf="payment.pickup_id" class="text-xs text-purple-600 mt-0.5">Linked to Pickup #{{ payment.pickup_id }}</p>
+                  <p *ngIf="payment.reference_number" class="text-xs text-gray-400 font-mono mt-0.5">Ref: {{ payment.reference_number }}</p>
+                  <p *ngIf="payment.verified_at" class="text-xs text-emerald-600 mt-1">Verified: {{ formatDate(payment.verified_at) }}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>

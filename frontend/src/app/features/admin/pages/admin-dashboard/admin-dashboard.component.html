@@ -1,0 +1,145 @@
+<div>
+  <app-header [title]="'Admin Dashboard'" [subtitle]="'System overview and management'" [userName]="userName" [userInitials]="userInitials"></app-header>
+
+  <div class="p-8 bg-gray-100">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <div class="card bg-white shadow-sm hover:shadow-md transition-shadow">
+        <div class="card-body p-6">
+          <div class="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center mb-4">
+            <svg class="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+          </div>
+          <h2 class="text-2xl font-bold text-dark-gray mb-1">{{ stats.totalUsers || 0 }}</h2>
+          <p class="text-sm text-medium-gray">Total Users</p>
+        </div>
+      </div>
+
+      <div class="card bg-white shadow-sm hover:shadow-md transition-shadow cursor-pointer" routerLink="/admin/reports">
+        <div class="card-body p-6">
+          <div class="w-12 h-12 bg-amber-50 rounded-xl flex items-center justify-center mb-4">
+            <svg class="w-6 h-6 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+          </div>
+          <h2 class="text-2xl font-bold text-dark-gray mb-1">{{ stats.pendingReports || 0 }}</h2>
+          <p class="text-sm text-medium-gray">Pending Bin Reports</p>
+        </div>
+      </div>
+
+      <div class="card bg-white shadow-sm hover:shadow-md transition-shadow cursor-pointer" routerLink="/admin/pickups">
+        <div class="card-body p-6">
+          <div class="w-12 h-12 bg-emerald-50 rounded-xl flex items-center justify-center mb-4">
+            <svg class="w-6 h-6 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+          </div>
+          <h2 class="text-2xl font-bold text-dark-gray mb-1">{{ stats.scheduledPickups || 0 }}</h2>
+          <p class="text-sm text-medium-gray">Scheduled Pickups</p>
+        </div>
+      </div>
+
+      <div class="card bg-white shadow-sm hover:shadow-md transition-shadow cursor-pointer" routerLink="/admin/payments">
+        <div class="card-body p-6">
+          <div class="w-12 h-12 bg-pink-50 rounded-xl flex items-center justify-center mb-4">
+            <span class="text-xl font-bold text-pink-500">₦</span>
+          </div>
+          <h2 class="text-2xl font-bold text-dark-gray mb-1">{{ stats.pendingPayments || 0 }}</h2>
+          <p class="text-sm text-medium-gray">Pending Payments</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+      <div class="card bg-white shadow-sm">
+        <div class="card-body p-6">
+          <h3 class="text-lg font-semibold text-dark-gray mb-4">Quick Stats</h3>
+          <div class="space-y-3">
+            <div class="flex justify-between py-2 border-b border-gray-100"><span class="text-sm text-medium-gray">Completed Pickups</span><span class="text-sm font-semibold">{{ stats.completedPickups || 0 }}</span></div>
+            <div class="flex justify-between py-2 border-b border-gray-100"><span class="text-sm text-medium-gray">Total Revenue</span><span class="text-sm font-semibold text-emerald-600">₦{{ stats.totalRevenue || 0 | number }}</span></div>
+            <div class="flex justify-between py-2 border-b border-gray-100"><span class="text-sm text-medium-gray">Open Complaints</span><span class="text-sm font-semibold">{{ stats.openComplaints || 0 }}</span></div>
+            <div class="flex justify-between py-2"><span class="text-sm text-medium-gray">Total Bins</span><span class="text-sm font-semibold">{{ stats.totalBins || 0 }}</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card bg-white shadow-sm">
+        <div class="card-body p-6">
+          <h3 class="text-lg font-semibold text-dark-gray mb-4">Quick Actions</h3>
+          <div class="grid grid-cols-2 gap-3">
+            <a routerLink="/admin/pickups" class="btn bg-emerald-500 hover:bg-emerald-600 text-white border-none rounded-xl text-sm">Manage Pickups</a>
+            <a routerLink="/admin/reports" class="btn bg-amber-500 hover:bg-amber-600 text-white border-none rounded-xl text-sm">View Reports</a>
+            <a routerLink="/admin/payments" class="btn bg-blue-500 hover:bg-blue-600 text-white border-none rounded-xl text-sm">Verify Payments</a>
+            <a routerLink="/admin/bins" class="btn bg-purple-500 hover:bg-purple-600 text-white border-none rounded-xl text-sm">Manage Bins</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="mb-6">
+      <h3 class="text-xl font-bold text-dark-gray mb-1">Pickup Demand Predictions</h3>
+      <p class="text-sm text-medium-gray mb-4">Data-driven insights based on historical reports and pickup patterns</p>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+      <div class="card bg-white shadow-sm">
+        <div class="card-body p-6">
+          <h4 class="font-semibold text-dark-gray mb-4">Area Demand Ranking</h4>
+          <div *ngIf="areaDemand.length === 0" class="text-sm text-medium-gray py-4 text-center">No data yet. Demand scores appear as reports and pickups accumulate.</div>
+          <div class="space-y-3" *ngIf="areaDemand.length > 0">
+            <div *ngFor="let area of areaDemand; let i = index" class="flex items-center justify-between py-2" [class.border-b]="i < areaDemand.length - 1" [class.border-gray-100]="true">
+              <div class="flex items-center gap-3">
+                <span class="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold"
+                  [ngClass]="area.priority === 'high' ? 'bg-red-100 text-red-700' : area.priority === 'medium' ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700'">
+                  {{ i + 1 }}
+                </span>
+                <div>
+                  <p class="text-sm font-medium text-dark-gray">{{ area.area }}</p>
+                  <p class="text-xs text-medium-gray">{{ area.reports }} reports, {{ area.unresolved }} unresolved</p>
+                </div>
+              </div>
+              <span class="badge text-xs border-none" [ngClass]="priorityBadge(area.priority)">{{ area.priority }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card bg-white shadow-sm">
+        <div class="card-body p-6">
+          <h4 class="font-semibold text-dark-gray mb-4">Weekly Demand Pattern</h4>
+          <div *ngIf="weeklyPattern.length === 0" class="text-sm text-medium-gray py-4 text-center">No data yet.</div>
+          <div class="flex items-end justify-between gap-1 h-32" *ngIf="weeklyPattern.length > 0">
+            <div *ngFor="let day of weeklyPattern" class="flex-1 flex flex-col items-center gap-1">
+              <span class="text-xs font-medium text-dark-gray">{{ day.demand }}</span>
+              <div class="w-full rounded-t-md transition-all"
+                [ngClass]="day.demand >= 5 ? 'bg-red-400' : day.demand >= 2 ? 'bg-amber-400' : 'bg-emerald-400'"
+                [style.height]="barHeight(day.demand)"></div>
+              <span class="text-xs text-medium-gray mt-1">{{ day.day.substring(0, 3) }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card bg-white shadow-sm">
+        <div class="card-body p-6">
+          <h4 class="font-semibold text-dark-gray mb-4">7-Day Forecast</h4>
+          <div *ngIf="forecast.length === 0" class="text-sm text-medium-gray py-4 text-center">No data yet.</div>
+          <div class="space-y-2" *ngIf="forecast.length > 0">
+            <div *ngFor="let f of forecast; let i = index" class="flex items-center justify-between py-1.5"
+              [class.border-b]="i < forecast.length - 1" [class.border-gray-100]="true">
+              <div class="flex items-center gap-2">
+                <span class="text-xs font-mono text-medium-gray w-14">{{ f.day }} {{ f.date.substring(5) }}</span>
+                <div class="w-20 bg-gray-100 rounded-full h-2">
+                  <div class="h-2 rounded-full transition-all"
+                    [ngClass]="f.level === 'high' ? 'bg-red-400' : f.level === 'medium' ? 'bg-amber-400' : 'bg-emerald-400'"
+                    [style.width]="barHeight(f.predicted_demand)"></div>
+                </div>
+              </div>
+              <span class="text-xs font-medium" [ngClass]="levelColor(f.level)">{{ f.predicted_demand }} events</span>
+            </div>
+            <div *ngIf="forecast[0]?.hotspot_areas?.length" class="mt-3 pt-3 border-t border-gray-100">
+              <p class="text-xs text-medium-gray mb-1">Today's hotspots:</p>
+              <div class="flex flex-wrap gap-1">
+                <span *ngFor="let a of forecast[0].hotspot_areas" class="badge badge-sm bg-red-50 text-red-600 border-none">{{ a }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

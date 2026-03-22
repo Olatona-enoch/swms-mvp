@@ -1,0 +1,277 @@
+<div>
+  <app-header [title]="'Waste Pickup'" [subtitle]="'Schedule and track your pickups'" [userName]="userName" [userInitials]="userInitials"></app-header>
+
+  <div class="p-8 bg-gray-100">
+    <!-- Tabs -->
+    <div class="max-w-5xl mx-auto mb-6">
+      <div class="flex gap-1 bg-white rounded-xl p-1 shadow-sm w-fit">
+        <button (click)="switchTab('schedule')" class="px-5 py-2.5 rounded-lg text-sm font-medium transition-all"
+          [class.bg-custom-green]="activeTab === 'schedule'" [class.text-white]="activeTab === 'schedule'"
+          [class.text-medium-gray]="activeTab !== 'schedule'">Schedule Pickup</button>
+        <button (click)="switchTab('history')" class="px-5 py-2.5 rounded-lg text-sm font-medium transition-all"
+          [class.bg-custom-green]="activeTab === 'history'" [class.text-white]="activeTab === 'history'"
+          [class.text-medium-gray]="activeTab !== 'history'">
+          My Pickups
+          <span *ngIf="allPickups.length" class="ml-1.5 text-xs px-1.5 py-0.5 rounded-full"
+            [ngClass]="activeTab === 'history' ? 'bg-white bg-opacity-20' : 'bg-gray-100'">{{ allPickups.length }}</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- schedule -->
+    <div *ngIf="activeTab === 'schedule'" class="max-w-5xl mx-auto">
+      <div *ngIf="scheduleStep === 'form'" class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="lg:col-span-2">
+          
+          <div *ngIf="isSubscribed" class="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-4">
+            <div class="flex items-center gap-3 mb-3">
+              <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
+                <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+              </div>
+              <div>
+                <p class="text-sm font-semibold text-blue-700">{{ subscriptionPlan?.name || 'Active' }} plan · {{ currentMonth }}</p>
+                <p class="text-xs text-blue-600">{{ subscriptionPlan?.perType }} pickup(s) per waste type · {{ subscriptionPlan?.remainingPickups }} of {{ subscriptionPlan?.maxPickups }} total remaining</p>
+              </div>
+            </div>
+            <div *ngIf="subscriptionPlan?.typeUsage" class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              <div *ngFor="let p of pickupPrices" class="text-center py-2 px-2 rounded-lg"
+                   [ngClass]="subscriptionPlan.typeUsage[p.bin_type]?.remaining > 0 ? 'bg-blue-100' : 'bg-amber-100'">
+                <p class="text-xs font-semibold" [ngClass]="subscriptionPlan.typeUsage[p.bin_type]?.remaining > 0 ? 'text-blue-700' : 'text-amber-700'">{{ p.name }}</p>
+                <p class="text-xs" [ngClass]="subscriptionPlan.typeUsage[p.bin_type]?.remaining > 0 ? 'text-blue-600' : 'text-amber-600'">
+                  {{ subscriptionPlan.typeUsage[p.bin_type]?.remaining || 0 }} left
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div *ngIf="!isSubscribed" class="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-4 flex items-center gap-3">
+            <div class="w-10 h-10 bg-amber-100 rounded-full flex items-center justify-center flex-shrink-0">
+              <svg class="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            </div>
+            <div class="flex-1">
+              <p class="text-sm font-semibold text-amber-700">No active subscription</p>
+              <p class="text-xs text-amber-600">You'll be charged per pickup, or you can <a routerLink="/payments" class="underline font-semibold">subscribe to a monthly plan</a> to save on regular collections.</p>
+            </div>
+          </div>
+
+          <div class="card bg-base-100 shadow-md rounded-xl">
+            <div class="card-body p-6">
+              <h2 class="text-lg font-semibold text-dark-gray mb-6">Schedule a Pickup</h2>
+              <form [formGroup]="pickupForm" (ngSubmit)="onFormSubmit()" class="space-y-5">
+                <div>
+                  <label class="block text-sm font-medium text-dark-gray mb-2">Location</label>
+                  <input type="text" formControlName="location" class="input input-bordered w-full rounded-lg" placeholder="Enter pickup address">
+                  <p *ngIf="isFieldInvalid('location')" class="text-xs text-red-500 mt-1">Location is required</p>
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-dark-gray mb-2">Bin Type</label>
+                  <select formControlName="binType" class="select select-bordered w-full rounded-lg" [class]="pickupForm.get('binType')?.value ? 'text-base-content' : 'text-base-content text-opacity-40'">
+                    <option value="" disabled>Select bin type</option>
+                    <option *ngFor="let p of pickupPrices" [value]="p.bin_type">
+                      {{ p.name }}{{ isSubscribed ? (isTypeAvailable(p.bin_type) ? ' ✓ (' + getRemainingForType(p.bin_type) + ' left)' : ' — limit reached') : ' — ₦' + (p.amount | number) }}
+                    </option>
+                  </select>
+                  <p *ngIf="isFieldInvalid('binType')" class="text-xs text-red-500 mt-1">Please select a bin type</p>
+                  <p *ngIf="pickupForm.get('binType')?.value && !isSubscribed" class="text-xs text-medium-gray mt-1">
+                    Per-pickup cost: <strong class="text-dark-gray">₦{{ getPriceForBinType(pickupForm.get('binType')?.value) | number }}</strong>
+                  </p>
+                  <p *ngIf="pickupForm.get('binType')?.value && isSubscribed && isTypeAvailable(pickupForm.get('binType')?.value)" class="text-xs text-blue-600 mt-1">
+                    Covered by subscription · {{ getRemainingForType(pickupForm.get('binType')?.value) }} remaining for this type
+                  </p>
+                  <p *ngIf="pickupForm.get('binType')?.value && isSubscribed && !isTypeAvailable(pickupForm.get('binType')?.value)" class="text-xs text-amber-600 mt-1">
+                    Limit reached for this type — per-pickup charge: <strong>₦{{ getPriceForBinType(pickupForm.get('binType')?.value) | number }}</strong>
+                  </p>
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-dark-gray mb-2">Preferred Pickup Date</label>
+                  <input type="date" formControlName="pickupDate" class="input input-bordered w-full rounded-lg" [min]="minDate" (change)="onDateChange()">
+                  <p *ngIf="isFieldInvalid('pickupDate')" class="text-xs text-red-500 mt-1">Please select a date</p>
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-dark-gray mb-2">Preferred Time Slot</label>
+                  <select formControlName="timeSlot" class="select select-bordered w-full rounded-lg" [class]="pickupForm.get('timeSlot')?.value ? 'text-base-content' : 'text-base-content text-opacity-40'">
+                    <option value="" disabled>Select time slot</option>
+                    <option>Morning (8:00 AM - 11:00 AM)</option>
+                    <option>Afternoon (12:00 PM - 3:00 PM)</option>
+                    <option>Evening (4:00 PM - 7:00 PM)</option>
+                  </select>
+                  <p *ngIf="isFieldInvalid('timeSlot')" class="text-xs text-red-500 mt-1">Please select a time slot</p>
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-dark-gray mb-2">Additional Notes (Optional)</label>
+                  <textarea formControlName="notes" class="textarea textarea-bordered w-full rounded-lg" rows="3" placeholder="Gate code, landmarks, special instructions..."></textarea>
+                </div>
+                <div *ngIf="errorMessage" class="bg-red-50 border-l-4 border-red-400 rounded-lg p-3">
+                  <p class="text-sm text-red-600">{{ errorMessage }}</p>
+                </div>
+                <button type="submit" [disabled]="isLoading" class="btn bg-custom-green hover:bg-emerald-600 text-white border-none w-full rounded-xl">
+                  <span *ngIf="isSubscribed && pickupForm.get('binType')?.value && isTypeAvailable(pickupForm.get('binType')?.value)">{{ isLoading ? 'Scheduling...' : 'Schedule Pickup (Covered)' }}</span>
+                  <span *ngIf="isSubscribed && pickupForm.get('binType')?.value && !isTypeAvailable(pickupForm.get('binType')?.value)">{{ isLoading ? 'Scheduling...' : 'Continue to Payment — ₦' + (getPriceForBinType(pickupForm.get('binType')?.value) | number) }}</span>
+                  <span *ngIf="isSubscribed && !pickupForm.get('binType')?.value">{{ isLoading ? 'Scheduling...' : 'Schedule Pickup' }}</span>
+                  <span *ngIf="!isSubscribed && pickupForm.get('binType')?.value">{{ isLoading ? 'Scheduling...' : 'Continue to Payment — ₦' + (getPriceForBinType(pickupForm.get('binType')?.value) | number) }}</span>
+                  <span *ngIf="!isSubscribed && !pickupForm.get('binType')?.value">{{ isLoading ? 'Scheduling...' : 'Continue to Payment' }}</span>
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+        <div class="lg:col-span-1">
+          <div class="card bg-base-100 shadow-md rounded-xl mb-6">
+            <div class="card-body p-6">
+              <h3 class="text-lg font-semibold text-dark-gray mb-4">Per-Pickup Pricing</h3>
+              <div class="space-y-3">
+                <div *ngFor="let p of pickupPrices" class="flex items-center justify-between py-2 border-b border-gray-100 last:border-0">
+                  <span class="text-sm text-medium-gray">{{ p.name }}</span>
+                  <span class="text-sm font-bold text-dark-gray">₦{{ p.amount | number }}</span>
+                </div>
+              </div>
+              <div class="mt-4 bg-blue-50 rounded-lg p-3">
+                <p class="text-xs text-blue-600">
+                  <strong>Save more:</strong> Subscribe to a monthly plan for unlimited pickups starting at ₦3,500/month.
+                </p>
+                <a routerLink="/payments" class="text-xs text-blue-700 font-semibold underline">View plans →</a>
+              </div>
+            </div>
+          </div>
+          <div class="bg-amber-50 border-l-4 border-amber-400 rounded-xl p-5 shadow-sm">
+            <p class="text-sm text-medium-gray"><span class="font-bold text-dark-gray">Reminder:</span> Place bins at the designated location before 8:00 AM on pickup day.</p>
+          </div>
+        </div>
+      </div>
+      <div *ngIf="scheduleStep === 'payment'" class="max-w-lg mx-auto">
+        <div class="card bg-base-100 shadow-md rounded-xl">
+          <div class="card-body p-6">
+            <div class="flex items-center gap-3 mb-4">
+              <button (click)="goBackToForm()" class="btn btn-ghost btn-sm btn-circle"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg></button>
+              <h2 class="text-lg font-semibold text-dark-gray">Pay for Pickup</h2>
+            </div>
+            <div class="bg-emerald-50 rounded-xl p-4 mb-5">
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-sm text-medium-gray">{{ pickupForm.value.binType | titlecase }} waste pickup</span>
+                <span class="text-2xl font-bold text-custom-green">₦{{ currentPickupPrice | number }}</span>
+              </div>
+              <p class="text-xs text-medium-gray">{{ pickupForm.value.pickupDate | date:'MMMM d, yyyy' }} · {{ pickupForm.value.timeSlot }}</p>
+              <p class="text-xs text-medium-gray">{{ pickupForm.value.location }}</p>
+            </div>
+            <div class="mb-4">
+              <p class="text-sm font-semibold text-dark-gray mb-3">{{ paystackEnabled ? 'Pay with Paystack' : 'Pay with Card' }}</p>
+              <div class="space-y-3">
+                <input type="text" [(ngModel)]="cardName" class="input input-bordered w-full rounded-lg input-sm" placeholder="Cardholder name">
+                <input type="text" [(ngModel)]="cardNumber" (input)="formatCardNumber()" class="input input-bordered w-full rounded-lg input-sm font-mono tracking-wider" placeholder="0000 0000 0000 0000" maxlength="19">
+                <div class="grid grid-cols-2 gap-3">
+                  <input type="text" [(ngModel)]="cardExpiry" (input)="formatExpiry()" class="input input-bordered w-full rounded-lg input-sm font-mono" placeholder="MM/YY" maxlength="5">
+                  <input type="password" [(ngModel)]="cardCvv" class="input input-bordered w-full rounded-lg input-sm font-mono" placeholder="CVV" maxlength="4">
+                </div>
+              </div>
+              <div *ngIf="errorMessage" class="bg-red-50 border-l-4 border-red-400 rounded-lg p-3 mt-3"><p class="text-sm text-red-600">{{ errorMessage }}</p></div>
+              <button (click)="onCardPayment()" [disabled]="isLoading" class="btn bg-custom-green hover:bg-emerald-600 text-white border-none w-full rounded-xl mt-4">
+                {{ isLoading ? 'Processing...' : 'Pay ₦' + (currentPickupPrice | number) + ' & Schedule' }}
+              </button>
+              <div class="flex items-center justify-center gap-2 mt-2">
+                <svg class="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                
+              </div>
+            </div>
+            <div class="divider text-xs text-gray-400">OR</div>
+            <button (click)="onBankPayment()" [disabled]="isLoading" class="btn btn-outline border-gray-300 w-full rounded-xl normal-case gap-2 mb-3">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
+              Bank Transfer — Manual Verification
+            </button>
+            <button (click)="onPayLater()" [disabled]="isLoading" class="btn btn-ghost w-full rounded-xl normal-case text-medium-gray text-xs">
+              Schedule now, pay later
+            </button>
+          </div>
+        </div>
+      </div>
+      <div *ngIf="scheduleStep === 'processing'" class="max-w-md mx-auto">
+        <div class="card bg-base-100 shadow-md rounded-xl">
+          <div class="card-body p-10 text-center">
+            <div class="w-20 h-20 mx-auto mb-6 relative">
+              <div class="absolute inset-0 border-4 border-emerald-200 rounded-full animate-ping"></div>
+              <div class="w-20 h-20 border-4 border-t-custom-green border-emerald-200 rounded-full animate-spin"></div>
+            </div>
+            <h2 class="text-xl font-semibold text-dark-gray mb-2">Processing Payment...</h2>
+            <p class="text-sm text-medium-gray">Verifying card and scheduling your pickup</p>
+          </div>
+        </div>
+      </div>
+      <div *ngIf="scheduleStep === 'success'" class="max-w-2xl mx-auto">
+        <div class="card bg-base-100 shadow-md rounded-xl">
+          <div class="card-body p-8 text-center">
+            <div class="w-20 h-20 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-6">
+              <svg class="w-10 h-10 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+            </div>
+            <h2 class="text-2xl font-semibold text-dark-gray mb-2">Pickup Scheduled!</h2>
+            <p class="text-medium-gray mb-6">Your waste pickup has been scheduled successfully.</p>
+            <div class="bg-gray-50 rounded-xl p-5 mb-6 text-left space-y-3">
+              <div class="flex justify-between"><span class="text-sm text-medium-gray">Type</span><span class="text-sm font-semibold">{{ pickupForm.value.binType | titlecase }} Waste</span></div>
+              <div class="flex justify-between"><span class="text-sm text-medium-gray">Date</span><span class="text-sm font-semibold">{{ pickupForm.value.pickupDate | date:'MMMM d, yyyy' }}</span></div>
+              <div class="flex justify-between"><span class="text-sm text-medium-gray">Time</span><span class="text-sm font-semibold">{{ pickupForm.value.timeSlot }}</span></div>
+              <div class="flex justify-between"><span class="text-sm text-medium-gray">Location</span><span class="text-sm font-semibold">{{ pickupForm.value.location }}</span></div>
+              <div class="flex justify-between">
+                <span class="text-sm text-medium-gray">Payment</span>
+                <span *ngIf="isSubscribed" class="badge bg-blue-100 text-blue-700 border-none text-xs">Covered by Subscription</span>
+                <span *ngIf="!isSubscribed && paymentMethod === 'card'" class="badge bg-emerald-100 text-emerald-700 border-none text-xs">₦{{ currentPickupPrice | number }} Paid</span>
+                <span *ngIf="!isSubscribed && paymentMethod === 'bank_transfer'" class="badge bg-amber-100 text-amber-700 border-none text-xs">₦{{ currentPickupPrice | number }} Pending</span>
+                <span *ngIf="!isSubscribed && !paymentMethod" class="badge bg-red-100 text-red-700 border-none text-xs">Unpaid</span>
+              </div>
+            </div>
+
+            <div class="bg-blue-50 rounded-xl p-5 mb-6 text-left">
+              <h3 class="text-sm font-semibold text-dark-gray mb-3">What's next?</h3>
+              <div class="space-y-2">
+                <button (click)="switchTab('history')" class="btn btn-sm bg-white hover:bg-gray-50 text-dark-gray border border-gray-200 rounded-lg w-full justify-start gap-2 normal-case">View my pickups</button>
+                <button (click)="scheduleAnother()" class="btn btn-sm bg-white hover:bg-emerald-50 text-dark-gray border border-gray-200 rounded-lg w-full justify-start gap-2 normal-case">Schedule another</button>
+                <button (click)="goToPayments()" class="btn btn-sm bg-white hover:bg-blue-50 text-dark-gray border border-gray-200 rounded-lg w-full justify-start gap-2 normal-case">Payment history</button>
+              </div>
+            </div>
+            <button (click)="goToDashboard()" class="btn bg-custom-green hover:bg-emerald-600 text-white border-none w-full rounded-xl">Back to Dashboard</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- history -->
+    <div *ngIf="activeTab === 'history'" class="max-w-5xl mx-auto">
+      <div class="card bg-base-100 shadow-md rounded-xl">
+        <div class="card-body p-6">
+          <div class="flex items-center justify-between mb-6">
+            <h2 class="text-lg font-semibold text-dark-gray">My Pickups</h2>
+            <button (click)="switchTab('schedule')" class="btn btn-sm bg-custom-green hover:bg-emerald-600 text-white border-none rounded-lg normal-case gap-1">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+              New Pickup
+            </button>
+          </div>
+
+          <div *ngIf="allPickups.length === 0" class="text-center py-12">
+            <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg class="w-8 h-8 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+            </div>
+            <p class="text-medium-gray mb-3">No pickups yet</p>
+            <button (click)="switchTab('schedule')" class="btn btn-sm bg-custom-green hover:bg-emerald-600 text-white border-none rounded-lg normal-case">Schedule your first pickup</button>
+          </div>
+
+          <div *ngIf="allPickups.length" class="space-y-3">
+            <div *ngFor="let pickup of allPickups" class="border rounded-xl p-4 hover:bg-gray-50 transition-colors">
+              <div class="flex items-start justify-between">
+                <div class="flex-1">
+                  <div class="flex items-center gap-2 flex-wrap mb-2">
+                    <span class="badge text-xs px-2 py-1 rounded-full border-none" [ngClass]="getStatusClass(pickup.status)">{{ pickup.status | titlecase }}</span>
+                    <span class="badge text-xs px-2 py-1 rounded-full border-none" [ngClass]="getPaymentStatusClass(pickup.payment_status)">{{ getPaymentStatusLabel(pickup.payment_status) }}</span>
+                    <span class="text-xs text-gray-400">{{ formatDate(pickup.created_at) }}</span>
+                  </div>
+                  <p class="text-sm font-semibold text-dark-gray mb-1">{{ pickup.bin_type | titlecase }} Waste · {{ pickup.pickup_date | date:'MMM d, yyyy' }}</p>
+                  <p class="text-sm text-medium-gray">{{ pickup.location }}</p>
+                  <p class="text-xs text-medium-gray mt-1">{{ pickup.time_slot }}</p>
+                  <p *ngIf="pickup.notes" class="text-xs text-amber-600 mt-1 italic">Notes: {{ pickup.notes }}</p>
+                  <p *ngIf="pickup.assigned_truck" class="text-xs text-blue-600 mt-1">Truck: {{ pickup.assigned_truck }}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>

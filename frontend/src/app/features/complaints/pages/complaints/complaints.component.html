@@ -1,0 +1,121 @@
+<div>
+  <app-header [title]="'Complaints'" [subtitle]="'Submit and track your complaints'" [userName]="userName" [userInitials]="userInitials"></app-header>
+
+  <div class="p-8 bg-gray-100">
+    <!-- Tabs -->
+    <div class="max-w-3xl mx-auto mb-6">
+      <div class="flex gap-1 bg-white rounded-xl p-1 shadow-sm w-fit">
+        <button (click)="switchTab('submit')" class="px-5 py-2.5 rounded-lg text-sm font-medium transition-all"
+          [class.bg-custom-green]="activeTab === 'submit'" [class.text-white]="activeTab === 'submit'"
+          [class.text-medium-gray]="activeTab !== 'submit'">New Complaint</button>
+        <button (click)="switchTab('history')" class="px-5 py-2.5 rounded-lg text-sm font-medium transition-all"
+          [class.bg-custom-green]="activeTab === 'history'" [class.text-white]="activeTab === 'history'"
+          [class.text-medium-gray]="activeTab !== 'history'">
+          My Complaints
+          <span *ngIf="complaints.length" class="ml-1.5 text-xs px-1.5 py-0.5 rounded-full"
+            [ngClass]="activeTab === 'history' ? 'bg-white bg-opacity-20' : 'bg-gray-100'">{{ complaints.length }}</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- submit -->
+    <div *ngIf="activeTab === 'submit'" class="max-w-3xl mx-auto">
+      <!-- Success -->
+      <div *ngIf="showSuccess" class="card bg-base-100 shadow-md rounded-xl">
+        <div class="card-body p-8 text-center">
+          <div class="w-20 h-20 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-6">
+            <svg class="w-10 h-10 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+          </div>
+          <h2 class="text-2xl font-semibold text-dark-gray mb-2">Complaint Submitted!</h2>
+          <p class="text-medium-gray mb-6">Our team will review your complaint and respond as soon as possible. You'll receive a notification when there's an update.</p>
+          <div class="bg-blue-50 rounded-xl p-5 text-left mb-4">
+            <h3 class="text-sm font-semibold text-dark-gray mb-3">What's next?</h3>
+            <div class="space-y-2">
+              <button (click)="switchTab('history')" class="btn btn-sm bg-white hover:bg-gray-50 text-dark-gray border border-gray-200 rounded-lg w-full justify-start gap-2 normal-case">View my complaints</button>
+              <button (click)="goToNotifications()" class="btn btn-sm bg-white hover:bg-blue-50 text-dark-gray border border-gray-200 rounded-lg w-full justify-start gap-2 normal-case">Check notifications</button>
+              <button (click)="switchTab('submit')" class="btn btn-sm bg-white hover:bg-pink-50 text-dark-gray border border-gray-200 rounded-lg w-full justify-start gap-2 normal-case">Submit another complaint</button>
+            </div>
+          </div>
+          <button (click)="goToDashboard()" class="btn bg-custom-green hover:bg-emerald-600 text-white border-none w-full rounded-xl">Back to Dashboard</button>
+        </div>
+      </div>
+
+      <!-- Form -->
+      <div *ngIf="!showSuccess" class="card bg-base-100 shadow-md rounded-xl">
+        <div class="card-body p-6">
+          <h2 class="text-lg font-semibold text-dark-gray mb-1">Submit a Complaint</h2>
+          <p class="text-sm text-medium-gray mb-6">Let us know about any issues with our service.</p>
+          <form [formGroup]="complaintForm" (ngSubmit)="onSubmit()" class="space-y-5">
+            <div>
+              <label class="block text-sm font-medium text-dark-gray mb-2">Subject</label>
+              <input type="text" formControlName="subject" class="input input-bordered w-full rounded-lg" placeholder="Brief description of your issue">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-dark-gray mb-2">Message</label>
+              <textarea formControlName="message" rows="4" class="textarea textarea-bordered w-full rounded-lg resize-none" placeholder="Describe your complaint in detail"></textarea>
+            </div>
+            <div *ngIf="errorMessage" class="bg-red-50 border-l-4 border-red-400 rounded-lg p-3">
+              <p class="text-sm text-red-600">{{ errorMessage }}</p>
+            </div>
+            <button type="submit" [disabled]="complaintForm.invalid || isLoading"
+              class="btn bg-custom-green hover:bg-emerald-600 text-white border-none w-full rounded-xl">
+              {{ isLoading ? 'Submitting...' : 'Submit Complaint' }}
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- history -->
+    <div *ngIf="activeTab === 'history'" class="max-w-3xl mx-auto">
+      <div class="card bg-base-100 shadow-md rounded-xl">
+        <div class="card-body p-6">
+          <div class="flex items-center justify-between mb-6">
+            <h2 class="text-lg font-semibold text-dark-gray">My Complaints</h2>
+            <button (click)="switchTab('submit')" class="btn btn-sm bg-custom-green hover:bg-emerald-600 text-white border-none rounded-lg normal-case gap-1">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+              New Complaint
+            </button>
+          </div>
+
+          <div *ngIf="complaints.length === 0" class="text-center py-12">
+            <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg class="w-8 h-8 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path></svg>
+            </div>
+            <p class="text-medium-gray mb-3">No complaints yet</p>
+            <button (click)="switchTab('submit')" class="btn btn-sm bg-custom-green hover:bg-emerald-600 text-white border-none rounded-lg normal-case">Submit your first complaint</button>
+          </div>
+
+          <div *ngIf="complaints.length" class="space-y-4">
+            <div *ngFor="let c of complaints" class="border rounded-xl p-4">
+              <div class="flex items-start justify-between mb-2">
+                <div class="flex items-center gap-3">
+                  <span class="badge text-xs px-2 py-1 rounded-full border-none" [ngClass]="getStatusClass(c.status)">{{ c.status | titlecase }}</span>
+                  <span class="text-xs text-gray-400">{{ formatDate(c.created_at) }}</span>
+                </div>
+                
+                <button *ngIf="c.status === 'open'"
+                  (click)="simulateResponse(c.id)"
+                  [disabled]="simulatingId === c.id"
+                  class="btn btn-xs btn-outline border-blue-300 text-blue-600 hover:bg-blue-50 hover:border-blue-400 rounded-lg normal-case gap-1">
+                  <svg *ngIf="simulatingId !== c.id" class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                  <span *ngIf="simulatingId === c.id" class="loading loading-spinner loading-xs"></span>
+                  {{ simulatingId === c.id ? 'Simulating...' : 'Simulate Response' }}
+                </button>
+              </div>
+              <h3 class="font-semibold text-dark-gray text-sm mb-1">{{ c.subject }}</h3>
+              <p class="text-sm text-medium-gray mb-2">{{ c.message }}</p>
+              
+              <div *ngIf="c.admin_response" class="bg-blue-50 rounded-lg p-3 mt-3 border-l-4 border-blue-400">
+                <p class="text-xs font-semibold text-blue-700 mb-1">Admin Response:</p>
+                <p class="text-sm text-dark-gray">{{ c.admin_response }}</p>
+                <p *ngIf="c.resolved_at" class="text-xs text-gray-400 mt-1.5">Responded: {{ formatDate(c.resolved_at) }}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>

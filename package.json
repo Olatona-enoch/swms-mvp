@@ -1,0 +1,19 @@
+{
+  "name": "swms-mvp",
+  "version": "1.0.0",
+  "description": "Smart Waste Management System - Complete MVP",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "start:frontend": "cd frontend && ng serve"
+  },
+  "dependencies": {
+    "bcrypt": "^6.0.0",
+    "better-sqlite3": "^8.3.0",
+    "body-parser": "^2.2.2",
+    "cors": "^2.8.6",
+    "express": "^5.2.1",
+    "qrcode": "^1.5.4",
+    "sqlite": "^5.1.1"
+  }
+}

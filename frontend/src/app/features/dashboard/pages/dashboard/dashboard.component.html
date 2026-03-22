@@ -1,0 +1,152 @@
+<div>
+  <app-header 
+    [title]="'Dashboard'" 
+    [userName]="userName"
+    [userInitials]="userInitials">
+  </app-header>
+
+  <div class="p-8 bg-gray-100">
+    <!-- Clickable stat cards -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <a routerLink="/schedule-pickup" class="card bg-white shadow-sm hover:shadow-md transition-all hover:-translate-y-0.5 cursor-pointer group">
+        <div class="card-body p-6">
+          <div class="flex items-center justify-between mb-4">
+            <div class="w-12 h-12 bg-emerald-50 rounded-xl flex items-center justify-center">
+              <svg class="w-6 h-6 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+              </svg>
+            </div>
+            <svg class="w-4 h-4 text-gray-300 group-hover:text-emerald-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+            </svg>
+          </div>
+          <h2 class="text-2xl font-bold text-dark-gray mb-1">{{ stats.nextPickup ? (stats.nextPickup.pickup_date | date:'MMM d') : 'None' }}</h2>
+          <p class="text-sm text-medium-gray">Next Pickup Date</p>
+          <p class="text-xs text-emerald-500 mt-2 opacity-0 group-hover:opacity-100 transition-opacity">Schedule a pickup →</p>
+        </div>
+      </a>
+
+      <a routerLink="/report-bin" [queryParams]="{tab: 'history'}" class="card bg-white shadow-sm hover:shadow-md transition-all hover:-translate-y-0.5 cursor-pointer group">
+        <div class="card-body p-6">
+          <div class="flex items-center justify-between mb-4">
+            <div class="w-12 h-12 bg-amber-50 rounded-xl flex items-center justify-center">
+              <svg class="w-6 h-6 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+              </svg>
+            </div>
+            <svg class="w-4 h-4 text-gray-300 group-hover:text-amber-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+            </svg>
+          </div>
+          <h2 class="text-2xl font-bold text-dark-gray mb-1">{{ stats.pendingReports }}</h2>
+          <p class="text-sm text-medium-gray">Pending Reports</p>
+          <p class="text-xs text-amber-500 mt-2 opacity-0 group-hover:opacity-100 transition-opacity">View my reports →</p>
+        </div>
+      </a>
+
+      <a routerLink="/schedule-pickup" [queryParams]="{tab: 'history'}" class="card bg-white shadow-sm hover:shadow-md transition-all hover:-translate-y-0.5 cursor-pointer group">
+        <div class="card-body p-6">
+          <div class="flex items-center justify-between mb-4">
+            <div class="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center">
+              <svg class="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+            </div>
+            <svg class="w-4 h-4 text-gray-300 group-hover:text-blue-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+            </svg>
+          </div>
+          <h2 class="text-2xl font-bold text-dark-gray mb-1">{{ stats.completedPickups }}</h2>
+          <p class="text-sm text-medium-gray">Total Pickups Completed</p>
+          <p class="text-xs text-blue-500 mt-2 opacity-0 group-hover:opacity-100 transition-opacity">View pickup history →</p>
+        </div>
+      </a>
+
+      <a routerLink="/payments" class="card bg-white shadow-sm hover:shadow-md transition-all hover:-translate-y-0.5 cursor-pointer group">
+        <div class="card-body p-6">
+          <div class="flex items-center justify-between mb-4">
+            <div class="w-12 h-12 bg-pink-50 rounded-xl flex items-center justify-center">
+              <span class="text-xl font-bold text-pink-500">₦</span>
+            </div>
+            <svg class="w-4 h-4 text-gray-300 group-hover:text-pink-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+            </svg>
+          </div>
+          <h2 class="text-2xl font-bold text-dark-gray mb-1">₦{{ stats.outstandingPayment | number }}</h2>
+          <p class="text-sm text-medium-gray">Outstanding Payment</p>
+          <p class="text-xs text-pink-500 mt-2 opacity-0 group-hover:opacity-100 transition-opacity">Make a payment →</p>
+        </div>
+      </a>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="card bg-white shadow-sm mb-8">
+      <div class="card-body p-6">
+        <h2 class="text-lg font-bold text-dark-gray mb-4">Quick Actions</h2>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <a routerLink="/schedule-pickup" class="btn bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border-none rounded-xl gap-2 normal-case font-medium">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+            New Pickup
+          </a>
+          <a routerLink="/report-bin" class="btn bg-amber-50 hover:bg-amber-100 text-amber-700 border-none rounded-xl gap-2 normal-case font-medium">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            Report Bin
+          </a>
+          <a routerLink="/payments" class="btn bg-blue-50 hover:bg-blue-100 text-blue-700 border-none rounded-xl gap-2 normal-case font-medium">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2z"></path></svg>
+            Pay Now
+          </a>
+          <a routerLink="/complaints" class="btn bg-pink-50 hover:bg-pink-100 text-pink-700 border-none rounded-xl gap-2 normal-case font-medium">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path></svg>
+            Complaint
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="card bg-white shadow-sm">
+      <div class="card-body p-6">
+        <h2 class="text-xl font-bold text-dark-gray mb-6">Recent Activity</h2>
+        <div class="space-y-4">
+          <div *ngFor="let activity of stats.recentActivity" class="flex items-start justify-between py-4 border-b border-gray-100 last:border-0">
+            <div class="flex items-start gap-4">
+              <div class="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0"
+                   [ngClass]="{
+                     'bg-emerald-50': activity.activity_type === 'pickup',
+                     'bg-blue-50': activity.activity_type === 'report',
+                     'bg-amber-50': activity.activity_type === 'payment'
+                   }">
+                <svg *ngIf="activity.activity_type === 'pickup'" class="w-5 h-5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+                <svg *ngIf="activity.activity_type === 'report'" class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <span *ngIf="activity.activity_type === 'payment'" class="text-base font-bold text-amber-500">₦</span>
+              </div>
+              <div>
+                <h3 class="font-semibold text-dark-gray text-sm mb-1">{{ activity.title }}</h3>
+                <p class="text-sm text-medium-gray">{{ activity.description }}</p>
+              </div>
+            </div>
+            <div class="text-right flex-shrink-0 ml-4">
+              <p class="text-xs text-gray-400">{{ formatDate(activity.created_at) }}</p>
+              <p class="text-xs text-gray-400">{{ formatTime(activity.created_at) }}</p>
+            </div>
+          </div>
+
+          <div *ngIf="stats.recentActivity.length === 0" class="text-center py-12">
+            <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg class="w-8 h-8 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+              </svg>
+            </div>
+            <p class="text-medium-gray mb-4">No recent activity yet.</p>
+            <a routerLink="/schedule-pickup" class="btn btn-sm bg-custom-green hover:bg-emerald-600 text-white border-none rounded-lg normal-case">Schedule your first pickup</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

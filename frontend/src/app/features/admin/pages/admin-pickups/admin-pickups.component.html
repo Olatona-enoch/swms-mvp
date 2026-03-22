@@ -1,0 +1,39 @@
+<div>
+  <app-header [title]="'Manage Pickups'" [subtitle]="'View and manage all scheduled pickups'" [userName]="userName" [userInitials]="userInitials"></app-header>
+  <div class="p-8 bg-gray-100">
+    <div class="card bg-base-100 shadow-md rounded-xl">
+      <div class="card-body p-6">
+        <h2 class="text-xl font-semibold text-dark-gray mb-4">All Pickups ({{ pickups.length }})</h2>
+        <div class="overflow-x-auto">
+          <table class="table w-full">
+            <thead>
+              <tr class="text-sm text-medium-gray">
+                <th>User</th><th>Location</th><th>Type</th><th>Date</th><th>Time</th><th>Notes</th><th>Truck</th><th>Status</th><th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let p of pickups" class="hover">
+                <td class="text-sm">{{ p.user_name }}<br><span class="text-xs text-gray-400">{{ p.user_email }}</span></td>
+                <td class="text-sm">{{ p.location }}</td>
+                <td class="text-sm capitalize">{{ p.bin_type }}</td>
+                <td class="text-sm">{{ p.pickup_date }}</td>
+                <td class="text-sm">{{ p.time_slot }}</td>
+                <td class="text-sm text-medium-gray italic">{{ p.notes || '-' }}</td>
+                <td class="text-sm">{{ p.assigned_truck || '-' }}</td>
+                <td><span class="badge border-none rounded-full px-3 py-1 text-xs font-medium" [ngClass]="getStatusClass(p.status)">{{ p.status }}</span></td>
+                <td>
+                  <div class="flex gap-1">
+                    <button *ngIf="p.status === 'scheduled'" (click)="assignTruck(p)" class="btn btn-xs btn-outline rounded-lg">Assign Truck</button>
+                    <button *ngIf="p.status === 'assigned'" (click)="updateStatus(p.id, 'completed')" class="btn btn-xs bg-emerald-500 text-white border-none rounded-lg">Complete</button>
+                    <button *ngIf="p.status !== 'completed' && p.status !== 'cancelled'" (click)="updateStatus(p.id, 'cancelled')" class="btn btn-xs btn-outline border-red-400 text-red-500 rounded-lg">Cancel</button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          <div *ngIf="pickups.length === 0" class="text-center py-8"><p class="text-medium-gray">No pickups found.</p></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

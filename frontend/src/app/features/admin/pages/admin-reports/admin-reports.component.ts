@@ -17,7 +17,12 @@ export class AdminReportsComponent implements OnInit {
   load(): void { this.apiService.getAllBinReports().subscribe({ next: (d) => this.reports = d }); }
   updateStatus(id: number, status: string): void { this.apiService.updateBinReportStatus(id, status).subscribe({ next: () => this.load() }); }
   getStatusClass(s: string): string {
-    const c: any = { pending: 'bg-amber-100 text-amber-600', assigned: 'bg-blue-100 text-blue-600', resolved: 'bg-emerald-100 text-emerald-600' };
+    const c: any = {
+      pending: 'bg-amber-100 text-amber-600',
+      assigned: 'bg-blue-100 text-blue-600',
+      resolved: 'bg-emerald-100 text-emerald-600',
+      investigating: 'bg-purple-100 text-purple-600'
+    };
     return c[s] || 'bg-gray-100 text-gray-600';
   }
 }

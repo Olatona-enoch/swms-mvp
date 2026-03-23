@@ -127,7 +127,7 @@
               </div>
               <div class="mt-4 bg-blue-50 rounded-lg p-3">
                 <p class="text-xs text-blue-600">
-                  <strong>Save more:</strong> Subscribe to a monthly plan for unlimited pickups starting at ₦3,500/month.
+                  <strong>Save more:</strong> Subscribe to a monthly plan for unlimited pickups starting at ₦7,000/month.
                 </p>
                 <a routerLink="/payments" class="text-xs text-blue-700 font-semibold underline">View plans →</a>
               </div>
@@ -155,13 +155,16 @@
             </div>
             <div class="mb-4">
               <p class="text-sm font-semibold text-dark-gray mb-3">{{ paystackEnabled ? 'Pay with Paystack' : 'Pay with Card' }}</p>
-              <div class="space-y-3">
-                <input type="text" [(ngModel)]="cardName" class="input input-bordered w-full rounded-lg input-sm" placeholder="Cardholder name">
-                <input type="text" [(ngModel)]="cardNumber" (input)="formatCardNumber()" class="input input-bordered w-full rounded-lg input-sm font-mono tracking-wider" placeholder="0000 0000 0000 0000" maxlength="19">
+              <div *ngIf="!paystackEnabled" class="space-y-3">
+                <input type="text" [(ngModel)]="cardName" ...>
+                <input type="text" [(ngModel)]="cardNumber" ...>
                 <div class="grid grid-cols-2 gap-3">
-                  <input type="text" [(ngModel)]="cardExpiry" (input)="formatExpiry()" class="input input-bordered w-full rounded-lg input-sm font-mono" placeholder="MM/YY" maxlength="5">
-                  <input type="password" [(ngModel)]="cardCvv" class="input input-bordered w-full rounded-lg input-sm font-mono" placeholder="CVV" maxlength="4">
+                  <input type="text" [(ngModel)]="cardExpiry" ...>
+                  <input type="password" [(ngModel)]="cardCvv" ...>
                 </div>
+              </div>
+              <div *ngIf="paystackEnabled" class="bg-blue-50 rounded-xl p-4 text-center">
+                <p class="text-sm text-blue-600">Click the button below to pay securely via Paystack.</p>
               </div>
               <div *ngIf="errorMessage" class="bg-red-50 border-l-4 border-red-400 rounded-lg p-3 mt-3"><p class="text-sm text-red-600">{{ errorMessage }}</p></div>
               <button (click)="onCardPayment()" [disabled]="isLoading" class="btn bg-custom-green hover:bg-emerald-600 text-white border-none w-full rounded-xl mt-4">
@@ -219,6 +222,11 @@
 
             <div class="bg-blue-50 rounded-xl p-5 mb-6 text-left">
               <h3 class="text-sm font-semibold text-dark-gray mb-3">What's next?</h3>
+              <button *ngIf="!paymentMethod && createdPickupId"
+                (click)="scheduleStep = 'payment'"
+                class="btn btn-sm bg-amber-500 hover:bg-amber-600 text-white border-none rounded-lg w-full justify-start gap-2 normal-case">
+                Pay now for this pickup
+              </button>
               <div class="space-y-2">
                 <button (click)="switchTab('history')" class="btn btn-sm bg-white hover:bg-gray-50 text-dark-gray border border-gray-200 rounded-lg w-full justify-start gap-2 normal-case">View my pickups</button>
                 <button (click)="scheduleAnother()" class="btn btn-sm bg-white hover:bg-emerald-50 text-dark-gray border border-gray-200 rounded-lg w-full justify-start gap-2 normal-case">Schedule another</button>
@@ -256,8 +264,8 @@
               <div class="flex items-start justify-between">
                 <div class="flex-1">
                   <div class="flex items-center gap-2 flex-wrap mb-2">
-                    <span class="badge text-xs px-2 py-1 rounded-full border-none" [ngClass]="getStatusClass(pickup.status)">{{ pickup.status | titlecase }}</span>
-                    <span class="badge text-xs px-2 py-1 rounded-full border-none" [ngClass]="getPaymentStatusClass(pickup.payment_status)">{{ getPaymentStatusLabel(pickup.payment_status) }}</span>
+                    <span class="badge ..." [ngClass]="getStatusClass(pickup.status)">{{ pickup.status | titlecase }}</span>
+                    <span class="badge ..." [ngClass]="getPaymentStatusClass(pickup.payment_status)">{{ getPaymentStatusLabel(pickup.payment_status) }}</span>
                     <span class="text-xs text-gray-400">{{ formatDate(pickup.created_at) }}</span>
                   </div>
                   <p class="text-sm font-semibold text-dark-gray mb-1">{{ pickup.bin_type | titlecase }} Waste · {{ pickup.pickup_date | date:'MMM d, yyyy' }}</p>
@@ -265,6 +273,15 @@
                   <p class="text-xs text-medium-gray mt-1">{{ pickup.time_slot }}</p>
                   <p *ngIf="pickup.notes" class="text-xs text-amber-600 mt-1 italic">Notes: {{ pickup.notes }}</p>
                   <p *ngIf="pickup.assigned_truck" class="text-xs text-blue-600 mt-1">Truck: {{ pickup.assigned_truck }}</p>
+                  <div *ngIf="pickup.payment_status === 'unpaid'" class="mt-3 pt-3 border-t border-gray-100">
+                    <button (click)="goToPayments()"
+                      class="btn btn-sm bg-amber-500 hover:bg-amber-600 text-white border-none rounded-lg normal-case gap-1">
+                      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
+                      </svg>
+                      Pay Now
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>

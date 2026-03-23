@@ -152,6 +152,22 @@ export class ApiService {
     return this.http.get<any[]>(`${this.apiUrl}/users`);
   }
 
+  suspendUser(userId: number): Observable<any> {
+    return this.http.patch(`${this.apiUrl}/users/${userId}/suspend`, {});
+  }
+
+  activateUser(userId: number): Observable<any> {
+    return this.http.patch(`${this.apiUrl}/users/${userId}/activate`, {});
+  }
+
+  getAllNotificationsAdmin(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/admin/notifications/all`);
+  }
+
+  markAllNotificationsReadAdmin(): Observable<any> {
+    return this.http.patch(`${this.apiUrl}/admin/notifications/read-all`, {});
+  }
+  
   getAreaDemand(): Observable<any[]> {
     return this.http.get<any[]>(`${this.apiUrl}/predictions/area-demand`);
   }

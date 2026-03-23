@@ -60,7 +60,8 @@ export class SchedulePickupPageComponent implements OnInit {
       this.cardName = user.name;
       if (user.address) this.pickupForm.patchValue({ location: user.address });
       this.loadPickups();
-      this.checkSubscription();
+      const today = new Date().toISOString().split('T')[0];
+      this.checkSubscription(today);
       this.loadPrices();
     }
     

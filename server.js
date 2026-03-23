@@ -49,9 +49,15 @@ function initializeDatabase() {
       address TEXT,
       password TEXT NOT NULL,
       role TEXT DEFAULT 'user',
+      is_suspended INTEGER DEFAULT 0,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     )
   `);
+
+  // Adds is_suspended to existing databases safely — ignored if column exists
+  try {
+    db.exec(`ALTER TABLE users ADD COLUMN is_suspended INTEGER DEFAULT 0`);
+  } catch (e) {}
 
   db.exec(`
     CREATE TABLE IF NOT EXISTS bins (
@@ -620,7 +626,7 @@ app.patch("/bin-reports/:id/simulate-response", (req, res) => {
     const response = pool[Math.floor(Math.random() * pool.length)];
 
     db.prepare(
-      `UPDATE bin_reports SET admin_response = ?, status = 'investigating', resolved_at = ? WHERE id = ?`
+      `UPDATE bin_reports SET admin_response = ?, status = 'assigned', resolved_at = ? WHERE id = ?`
     ).run(response, new Date().toISOString(), Number(req.params.id));
 
     createNotification(report.user_id, "Bin Report Update",
@@ -759,6 +765,32 @@ app.patch("/notifications/read-all", (req, res) => {
   }
 });
 
+app.patch("/admin/notifications/read-all", (req, res) => {
+  try {
+    db.prepare("UPDATE notifications SET is_read = 1").run();
+    res.json({ message: "All notifications marked as read" });
+  } catch (error) {
+    console.error("Server error:", error);
+    res.status(500).json({ message: "Server error", detail: error?.message || "Unknown error" });
+  }
+});
+
+app.get("/admin/notifications/all", (req, res) => {
+  try {
+    const rows = db.prepare(
+      `SELECT n.*, u.name as user_name, u.email as user_email
+       FROM notifications n
+       JOIN users u ON n.user_id = u.id
+       ORDER BY n.created_at DESC
+       LIMIT 200`
+    ).all();
+    res.json(rows);
+  } catch (error) {
+    console.error("Server error:", error);
+    res.status(500).json({ message: "Server error", detail: error?.message || "Unknown error" });
+  }
+});
+
 app.post("/complaints", (req, res) => {
   const { user_id, subject, message } = req.body;
   if (!user_id || !subject || !message) return res.status(400).json({ message: "All fields are required" });
@@ -826,7 +858,7 @@ app.patch("/complaints/:id/simulate-response", (req, res) => {
     ];
     const response = responses[Math.floor(Math.random() * responses.length)];
     db.prepare(
-      `UPDATE complaints SET admin_response = ?, status = 'responded', resolved_at = ? WHERE id = ?`
+      `UPDATE complaints SET admin_response = ?, status = 'in_progress', resolved_at = ? WHERE id = ?`
     ).run(response, new Date().toISOString(), Number(req.params.id));
     createNotification(c.user_id, "Complaint Responded", `Your complaint "${c.subject}" has received a response from our team.`, "success", "complaint", Number(req.params.id));
     res.json({ message: "Response simulated", response });
@@ -951,11 +983,38 @@ app.get("/dashboard/admin-stats", (req, res) => {
 
 app.get("/users", (req, res) => {
   try {
-    const rows = db.prepare("SELECT id, name, email, role, phone, address, created_at FROM users ORDER BY created_at DESC").all();
+    const rows = db.prepare("SELECT id, name, email, role, phone, address, created_at, is_suspended FROM users ORDER BY created_at DESC").all();
     res.json(rows);
   } catch (error) {
     console.error("Server error:", error);
     res.status(500).json({ message: "Server error", detail: error?.message || "Unknown error" });
+  }
+});
+
+app.patch("/users/:id/suspend", (req, res) => {
+  try {
+    const user = db.prepare("SELECT id, name, role FROM users WHERE id = ?").get(Number(req.params.id));
+    if (!user) return res.status(404).json({ message: "User not found" });
+    if (user.role === 'admin') return res.status(400).json({ message: "Cannot suspend an admin account" });
+    db.prepare("UPDATE users SET is_suspended = 1 WHERE id = ?").run(Number(req.params.id));
+    createNotification(Number(req.params.id), "Account Suspended", "Your account has been suspended. Please contact support.", "warning");
+    res.json({ message: "User suspended successfully" });
+  } catch (error) {
+    console.error("Server error:", error);
+    res.status(500).json({ message: "Error suspending user", detail: error?.message || "Unknown error" });
+  }
+});
+
+app.patch("/users/:id/activate", (req, res) => {
+  try {
+    const user = db.prepare("SELECT id, name FROM users WHERE id = ?").get(Number(req.params.id));
+    if (!user) return res.status(404).json({ message: "User not found" });
+    db.prepare("UPDATE users SET is_suspended = 0 WHERE id = ?").run(Number(req.params.id));
+    createNotification(Number(req.params.id), "Account Reactivated", "Your account has been reactivated. Welcome back!", "success");
+    res.json({ message: "User activated successfully" });
+  } catch (error) {
+    console.error("Server error:", error);
+    res.status(500).json({ message: "Error activating user", detail: error?.message || "Unknown error" });
   }
 });
 

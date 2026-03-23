@@ -36,9 +36,13 @@ export class HeaderComponent implements OnInit, OnDestroy {
     
     const userId = this.authService.userId;
     if (userId) {
-      this.apiService.getNotifications(userId).subscribe({
-        next: (notifications) => {
-          const count = notifications.filter(n => !n.is_read).length;
+      const source$ = this.authService.isAdmin
+        ? this.apiService.getAllNotificationsAdmin()
+        : this.apiService.getNotifications(userId);
+
+      source$.subscribe({
+        next: (notifications: any[]) => {
+          const count = notifications.filter((n: any) => !n.is_read).length;
           this.notifCount.setCount(count);
         },
         error: () => {}
@@ -48,9 +52,12 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void { this.sub?.unsubscribe(); }
 
-  goToNotifications(): void { this.router.navigate(['/notifications']); }
+  goToNotifications(): void {
+    this.router.navigate([this.authService.isAdmin ? '/admin/notifications' : '/notifications']);
+  }
   goToDashboard(): void { this.router.navigate([this.authService.isAdmin ? '/admin' : '/dashboard']); }
   toggleUserMenu(): void { this.showUserMenu = !this.showUserMenu; }
+  goToSettings():void { this.router.navigate(['/settings']); }
 
   logout(): void {
     this.authService.logout();

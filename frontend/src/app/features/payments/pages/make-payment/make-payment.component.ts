@@ -60,12 +60,12 @@ export class MakePaymentComponent implements OnInit {
       next: (plans) => { this.plans = plans; },
       error: () => {
         this.plans = [
-          { id: 'basic', name: 'Basic', amount: 3500, description: 'Weekly pickup, 1 bin — small households' },
-          { id: 'standard', name: 'Standard', amount: 5000, description: 'Twice weekly pickup, 2 bins — medium households' },
-          { id: 'premium', name: 'Premium', amount: 8500, description: 'Thrice weekly pickup, 3 bins — large households' },
-          { id: 'commercial', name: 'Commercial', amount: 15000, description: 'Daily pickup, unlimited bins — offices & businesses' }
+          { id: 'basic', name: 'Basic', amount: 7000, description: '1 pickup per waste type/month', savings: 'Save ₦500 vs per-pickup (₦7,500)' },
+          { id: 'standard', name: 'Standard', amount: 13000, description: '2 pickups per waste type/month', savings: 'Save ₦2,000 vs per-pickup (₦15,000)' },
+          { id: 'premium', name: 'Premium', amount: 18000, description: '3 pickups per waste type/month', savings: 'Save ₦4,500 vs per-pickup (₦22,500)' },
+          { id: 'commercial', name: 'Commercial', amount: 30000, description: '5 pickups per waste type/month', savings: 'Save ₦7,500 vs per-pickup (₦37,500)' }
         ];
-      }
+      }    
     });
   }
 

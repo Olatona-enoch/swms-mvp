@@ -16,6 +16,7 @@ import { AdminBinsComponent } from './features/admin/pages/admin-bins/admin-bins
 import { AdminComplaintsComponent } from './features/admin/pages/admin-complaints/admin-complaints.component';
 import { AdminUsersComponent } from './features/admin/pages/admin-users/admin-users.component';
 import { AdminNotificationsComponent } from './features/admin/pages/admin-notifications/admin-notifications.component';
+import { AdminSettingsComponent } from './features/admin/pages/admin-settings/admin-settings.component';
 import { authGuard, adminGuard } from './guards/auth.guard';
 
 export const routes: Routes = [
@@ -41,6 +42,7 @@ export const routes: Routes = [
   { path: 'admin/complaints', component: AdminComplaintsComponent, canActivate: [authGuard, adminGuard] },
   { path: 'admin/users', component: AdminUsersComponent, canActivate: [authGuard, adminGuard] },
   { path: 'admin/notifications', component: AdminNotificationsComponent, canActivate: [authGuard, adminGuard] },
+  { path: 'admin/settings', component: AdminSettingsComponent, canActivate: [authGuard, adminGuard] },
 
   { path: '**', redirectTo: '/login' },
 ];

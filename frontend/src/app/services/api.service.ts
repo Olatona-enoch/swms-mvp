@@ -160,6 +160,14 @@ export class ApiService {
     return this.http.patch(`${this.apiUrl}/users/${userId}/activate`, {});
   }
 
+  getAdminSettings(): Observable<any> {
+    return this.http.get(`${this.apiUrl}/admin/settings`);
+  }
+
+  updateAdminSettings(data: any): Observable<any> {
+    return this.http.patch(`${this.apiUrl}/admin/settings`, data);
+  }
+  
   getAllNotificationsAdmin(): Observable<any[]> {
     return this.http.get<any[]>(`${this.apiUrl}/admin/notifications/all`);
   }

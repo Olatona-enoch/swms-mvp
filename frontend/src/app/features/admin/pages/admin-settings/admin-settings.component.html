@@ -1,0 +1,320 @@
+<div>
+  <app-header
+    [title]="'Settings'"
+    [subtitle]="'Configure system preferences'"
+    [userName]="userName"
+    [userInitials]="userInitials">
+  </app-header>
+
+  <div class="p-8 bg-gray-100 min-h-screen">
+    <div class="max-w-3xl mx-auto space-y-6">
+
+      <!-- ── Admin Profile ─────────────────────────────── -->
+      <div class="card bg-white shadow-sm rounded-xl">
+        <div class="card-body p-6">
+          <h2 class="text-lg font-semibold text-dark-gray mb-6">Admin Profile</h2>
+
+          <form [formGroup]="profileForm">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+              <div>
+                <label class="block text-sm font-medium text-dark-gray mb-2">Full Name</label>
+                <input type="text" formControlName="name"
+                  class="input input-bordered w-full rounded-lg"
+                  [class.input-error]="isFieldInvalid('name', profileForm, isProfileSubmitted)"
+                  placeholder="Admin User">
+                <p *ngIf="isFieldInvalid('name', profileForm, isProfileSubmitted)"
+                  class="text-error text-xs mt-1">Name is required</p>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-dark-gray mb-2">Email</label>
+                <input type="email" formControlName="email"
+                  class="input input-bordered w-full rounded-lg"
+                  [class.input-error]="isFieldInvalid('email', profileForm, isProfileSubmitted)"
+                  placeholder="admin@wastewise.com">
+                <p *ngIf="isFieldInvalid('email', profileForm, isProfileSubmitted)"
+                  class="text-error text-xs mt-1">
+                  <span *ngIf="profileForm.get('email')?.hasError('required')">Email is required</span>
+                  <span *ngIf="profileForm.get('email')?.hasError('email')">Enter a valid email</span>
+                </p>
+              </div>
+            </div>
+
+            <div class="mb-5">
+              <label class="block text-sm font-medium text-dark-gray mb-2">Phone Number</label>
+              <input type="tel" formControlName="phone"
+                class="input input-bordered w-full rounded-lg"
+                placeholder="+1 (555) 123-4567">
+            </div>
+
+            <!-- Change Password toggle button -->
+            <div class="mb-5">
+              <button type="button" (click)="togglePasswordForm()"
+                class="btn btn-outline border-gray-300 text-dark-gray hover:bg-gray-50 rounded-lg normal-case gap-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                </svg>
+                Change Password
+              </button>
+            </div>
+
+            <!-- Collapsible password form -->
+            <div *ngIf="showPasswordForm" class="bg-gray-50 rounded-xl p-4 mb-5 space-y-4">
+              <div [formGroup]="passwordForm">
+                <label class="block text-sm font-medium text-dark-gray mb-2">Current Password</label>
+                <div class="relative">
+                  <input [type]="showCurrentPassword ? 'text' : 'password'"
+                    formControlName="currentPassword"
+                    class="input input-bordered w-full rounded-lg pr-10"
+                    [class.input-error]="isFieldInvalid('currentPassword', passwordForm, isPasswordSubmitted)"
+                    placeholder="Enter current password">
+                  <button type="button" (click)="toggleVisibility('current')"
+                    class="absolute inset-y-0 right-0 pr-3 flex items-center">
+                    <svg *ngIf="!showCurrentPassword" class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                    </svg>
+                    <svg *ngIf="showCurrentPassword" class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/>
+                    </svg>
+                  </button>
+                </div>
+                <p *ngIf="isFieldInvalid('currentPassword', passwordForm, isPasswordSubmitted)"
+                  class="text-error text-xs mt-1">Required</p>
+              </div>
+
+              <div [formGroup]="passwordForm">
+                <label class="block text-sm font-medium text-dark-gray mb-2">New Password</label>
+                <div class="relative">
+                  <input [type]="showNewPassword ? 'text' : 'password'"
+                    formControlName="newPassword"
+                    class="input input-bordered w-full rounded-lg pr-10"
+                    [class.input-error]="isFieldInvalid('newPassword', passwordForm, isPasswordSubmitted)"
+                    placeholder="Min 6 characters">
+                  <button type="button" (click)="toggleVisibility('new')"
+                    class="absolute inset-y-0 right-0 pr-3 flex items-center">
+                    <svg *ngIf="!showNewPassword" class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                    </svg>
+                    <svg *ngIf="showNewPassword" class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/>
+                    </svg>
+                  </button>
+                </div>
+                <p *ngIf="isFieldInvalid('newPassword', passwordForm, isPasswordSubmitted)"
+                  class="text-error text-xs mt-1">
+                  <span *ngIf="passwordForm.get('newPassword')?.hasError('required')">Required</span>
+                  <span *ngIf="passwordForm.get('newPassword')?.hasError('minlength')">Minimum 6 characters</span>
+                </p>
+              </div>
+
+              <div [formGroup]="passwordForm">
+                <label class="block text-sm font-medium text-dark-gray mb-2">Confirm New Password</label>
+                <div class="relative">
+                  <input [type]="showConfirmPassword ? 'text' : 'password'"
+                    formControlName="confirmPassword"
+                    class="input input-bordered w-full rounded-lg pr-10"
+                    [class.input-error]="isFieldInvalid('confirmPassword', passwordForm, isPasswordSubmitted)"
+                    placeholder="Repeat new password">
+                  <button type="button" (click)="toggleVisibility('confirm')"
+                    class="absolute inset-y-0 right-0 pr-3 flex items-center">
+                    <svg *ngIf="!showConfirmPassword" class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                    </svg>
+                    <svg *ngIf="showConfirmPassword" class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/>
+                    </svg>
+                  </button>
+                </div>
+                <p *ngIf="passwordForm.hasError('passwordMismatch') && (passwordForm.get('confirmPassword')?.touched || isPasswordSubmitted)"
+                  class="text-error text-xs mt-1">Passwords do not match</p>
+              </div>
+
+              <div *ngIf="passwordMessage" class="rounded-lg p-3 border-l-4"
+                [ngClass]="passwordIsError ? 'bg-red-50 border-red-400' : 'bg-emerald-50 border-emerald-400'">
+                <p class="text-sm" [ngClass]="passwordIsError ? 'text-red-600' : 'text-emerald-600'">
+                  {{ passwordMessage }}
+                </p>
+              </div>
+
+              <div class="flex gap-3">
+                <button type="button" (click)="savePassword()" [disabled]="passwordLoading"
+                  class="btn bg-custom-green hover:bg-emerald-600 text-white border-none rounded-xl normal-case flex-1">
+                  <span *ngIf="passwordLoading" class="loading loading-spinner loading-xs"></span>
+                  {{ passwordLoading ? 'Saving...' : 'Update Password' }}
+                </button>
+                <button type="button" (click)="togglePasswordForm()"
+                  class="btn btn-ghost rounded-xl normal-case text-medium-gray">
+                  Cancel
+                </button>
+              </div>
+            </div>
+
+            <!-- Profile feedback -->
+            <div *ngIf="profileMessage" class="rounded-lg p-3 mb-4 border-l-4"
+              [ngClass]="profileIsError ? 'bg-red-50 border-red-400' : 'bg-emerald-50 border-emerald-400'">
+              <p class="text-sm" [ngClass]="profileIsError ? 'text-red-600' : 'text-emerald-600'">
+                {{ profileMessage }}
+              </p>
+            </div>
+
+            <button type="button" (click)="saveProfile()" [disabled]="profileLoading"
+              class="btn bg-custom-green hover:bg-emerald-600 text-white border-none rounded-xl normal-case">
+              <span *ngIf="profileLoading" class="loading loading-spinner loading-xs"></span>
+              {{ profileLoading ? 'Saving...' : 'Save Changes' }}
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <!-- ── Pickup Pricing Settings ────────────────────── -->
+      <div class="card bg-white shadow-sm rounded-xl">
+        <div class="card-body p-6">
+          <h2 class="text-lg font-semibold text-dark-gray mb-6">Pickup Pricing Settings</h2>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+            <div>
+              <label class="block text-sm font-medium text-dark-gray mb-2">Standard Pickup Fee</label>
+              <div class="relative">
+                <span class="absolute left-3 top-1/2 -translate-y-1/2 text-medium-gray text-sm font-medium">₦</span>
+                <input type="number" [(ngModel)]="standardFee" min="0"
+                  class="input input-bordered w-full rounded-lg pl-7"
+                  placeholder="25.00">
+              </div>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-dark-gray mb-2">Emergency Pickup Fee</label>
+              <div class="relative">
+                <span class="absolute left-3 top-1/2 -translate-y-1/2 text-medium-gray text-sm font-medium">₦</span>
+                <input type="number" [(ngModel)]="emergencyFee" min="0"
+                  class="input input-bordered w-full rounded-lg pl-7"
+                  placeholder="50.00">
+              </div>
+            </div>
+          </div>
+
+          <div class="mb-6">
+            <label class="block text-sm font-medium text-dark-gray mb-2">
+              Discount Percentage
+              <span class="text-light-gray font-normal">(Optional)</span>
+            </label>
+            <div class="relative">
+              <input type="number" [(ngModel)]="discountPercent" min="0" max="100"
+                class="input input-bordered w-full rounded-lg pr-8"
+                placeholder="0">
+              <span class="absolute right-3 top-1/2 -translate-y-1/2 text-medium-gray text-sm">%</span>
+            </div>
+          </div>
+
+          <div *ngIf="pricingMessage" class="rounded-lg p-3 mb-4 border-l-4"
+            [ngClass]="pricingIsError ? 'bg-red-50 border-red-400' : 'bg-emerald-50 border-emerald-400'">
+            <p class="text-sm" [ngClass]="pricingIsError ? 'text-red-600' : 'text-emerald-600'">
+              {{ pricingMessage }}
+            </p>
+          </div>
+
+          <button (click)="updatePricing()" [disabled]="pricingLoading"
+            class="btn bg-custom-green hover:bg-emerald-600 text-white border-none rounded-xl normal-case">
+            <span *ngIf="pricingLoading" class="loading loading-spinner loading-xs"></span>
+            {{ pricingLoading ? 'Saving...' : 'Update Pricing' }}
+          </button>
+        </div>
+      </div>
+
+      <!-- ── Service Areas ──────────────────────────────── -->
+      <div class="card bg-white shadow-sm rounded-xl">
+        <div class="card-body p-6">
+          <div class="flex items-center justify-between mb-6">
+            <h2 class="text-lg font-semibold text-dark-gray">Service Areas</h2>
+            <button (click)="showAddArea = !showAddArea"
+              class="btn btn-outline border-custom-green text-custom-green hover:bg-emerald-50 hover:border-custom-green rounded-xl normal-case btn-sm gap-1">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+              </svg>
+              Add Area
+            </button>
+          </div>
+
+          <!-- Add area input row -->
+          <div *ngIf="showAddArea" class="flex gap-3 mb-4">
+            <input type="text" [(ngModel)]="newArea" (keyup.enter)="addArea()"
+              class="input input-bordered flex-1 rounded-lg"
+              placeholder="Enter area name e.g. Lekki Phase 2">
+            <button (click)="addArea()"
+              class="btn bg-custom-green hover:bg-emerald-600 text-white border-none rounded-xl normal-case">
+              Add
+            </button>
+            <button (click)="showAddArea = false; newArea = ''"
+              class="btn btn-ghost rounded-xl normal-case text-medium-gray">
+              Cancel
+            </button>
+          </div>
+
+          <div *ngIf="areasMessage" class="text-xs text-emerald-600 mb-3">{{ areasMessage }}</div>
+
+          <!-- Areas list -->
+          <div class="space-y-2">
+            <div *ngFor="let area of serviceAreas"
+              class="flex items-center justify-between px-4 py-3 border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors">
+              <span class="text-sm text-dark-gray">{{ area }}</span>
+              <button (click)="removeArea(area)" [disabled]="areasLoading"
+                class="btn btn-ghost btn-xs btn-circle text-gray-400 hover:text-red-500 hover:bg-red-50">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+              </button>
+            </div>
+
+            <div *ngIf="serviceAreas.length === 0" class="text-center py-8">
+              <p class="text-sm text-medium-gray">No service areas added yet.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Notification Settings ──────────────────────── -->
+      <div class="card bg-white shadow-sm rounded-xl">
+        <div class="card-body p-6">
+          <h2 class="text-lg font-semibold text-dark-gray mb-2">Notification Settings</h2>
+
+          <div class="divide-y divide-gray-100">
+            <div class="flex items-center justify-between py-4">
+              <div>
+                <p class="text-sm font-medium text-dark-gray">Email Notifications</p>
+                <p class="text-xs text-medium-gray mt-0.5">Receive notifications via email</p>
+              </div>
+              <input type="checkbox" class="toggle toggle-success"
+                [(ngModel)]="notifSettings.emailNotifications"
+                (ngModelChange)="saveNotifSettings()">
+            </div>
+
+            <div class="flex items-center justify-between py-4">
+              <div>
+                <p class="text-sm font-medium text-dark-gray">SMS Notifications</p>
+                <p class="text-xs text-medium-gray mt-0.5">Receive notifications via SMS</p>
+              </div>
+              <input type="checkbox" class="toggle toggle-success"
+                [(ngModel)]="notifSettings.smsNotifications"
+                (ngModelChange)="saveNotifSettings()">
+            </div>
+
+            <div class="flex items-center justify-between py-4">
+              <div>
+                <p class="text-sm font-medium text-dark-gray">Payment Alerts</p>
+                <p class="text-xs text-emerald-600 mt-0.5">Get notified about payment verifications</p>
+              </div>
+              <input type="checkbox" class="toggle toggle-success"
+                [(ngModel)]="notifSettings.paymentAlerts"
+                (ngModelChange)="saveNotifSettings()">
+            </div>
+          </div>
+
+          <div *ngIf="notifMessage" class="text-xs text-emerald-600 mt-3">{{ notifMessage }}</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>

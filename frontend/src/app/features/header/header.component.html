@@ -2,7 +2,8 @@
   <div class="px-8 py-6 flex items-center justify-between">
     <div>
       <h1 class="text-pageheader text-dark-gray font-semibold">{{ title }}</h1>
-      <p class="text-sm text-medium-gray mt-1">welcome back, <span class="font-semibold text-[#2ECC71]">{{ userName }}</span></p>
+      <p *ngIf="!subtitle" class="text-sm text-medium-gray mt-1">welcome back, <span class="font-semibold text-[#2ECC71]">{{ userName }}</span></p>
+      <p *ngIf="subtitle" class="text-sm text-medium-gray mt-1"> {{subtitle}}</p>
     </div>
     <div class="flex items-center gap-4">
       <!-- Notifications bell -->
@@ -18,7 +19,10 @@
       <div class="relative user-menu-container" style="z-index: 51;">
         <button (click)="toggleUserMenu()" class="flex items-center gap-3 px-4 py-2 border border-gray-200 rounded-full hover:bg-gray-50 transition-colors cursor-pointer">
           <div class="w-10 h-10 bg-custom-green rounded-full flex items-center justify-center text-white font-semibold text-sm">{{ userInitials }}</div>
-          <span class="font-medium text-dark-gray text-sm hidden sm:inline">{{ userName }}</span>
+          <div class="flex flex-col items-center">
+             <span class="font-medium text-dark-gray text-sm hidden sm:inline">{{ userName }} </span>
+              <span *ngIf="authService.isAdmin" class="font-medium text-light-gray text-xs hidden sm:inline">Admin user </span>
+          </div>
         </button>
         <div *ngIf="showUserMenu" class="absolute right-0 top-14 bg-white shadow-lg rounded-xl border w-48 overflow-hidden" style="z-index: 100;">
           <button (click)="goToDashboard(); showUserMenu = false" class="w-full px-4 py-3 text-left text-sm text-dark-gray hover:bg-gray-50 flex items-center gap-2">

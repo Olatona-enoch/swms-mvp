@@ -152,6 +152,26 @@ function initializeDatabase() {
       FOREIGN KEY (user_id) REFERENCES users(id)
     )
   `);
+
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS admin_settings (
+      id INTEGER PRIMARY KEY CHECK (id = 1),
+      standard_fee REAL DEFAULT 25,
+      emergency_fee REAL DEFAULT 50,
+      discount_percent REAL DEFAULT 0,
+      service_areas TEXT DEFAULT '[]',
+      email_notifications INTEGER DEFAULT 1,
+      sms_notifications INTEGER DEFAULT 1,
+      payment_alerts INTEGER DEFAULT 1,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
+
+  const existingSettings = db.prepare("SELECT id FROM admin_settings WHERE id = 1").get();
+  if (!existingSettings) {
+    db.prepare(`INSERT INTO admin_settings (id, service_areas) VALUES (1, ?)`)
+      .run(JSON.stringify(['Lekki', 'Victoria Island', 'Ikeja', 'Surulere', 'Ikoyi']));
+  }
 }
 
 async function seedData() {
@@ -1201,6 +1221,33 @@ app.get("/paystack/verify/:reference", async (req, res) => {
   } catch (error) {
     console.error("Paystack verify error:", error);
     res.status(500).json({ message: "Verification failed" });
+  }
+});
+
+app.get("/admin/settings", (req, res) => {
+  try {
+    const settings = db.prepare("SELECT * FROM admin_settings WHERE id = 1").get();
+    res.json(settings || {});
+  } catch (error) {
+    console.error("Server error:", error);
+    res.status(500).json({ message: "Server error", detail: error?.message || "Unknown error" });
+  }
+});
+
+app.patch("/admin/settings", (req, res) => {
+  try {
+    const allowed = ['standard_fee', 'emergency_fee', 'discount_percent',
+                     'service_areas', 'email_notifications', 'sms_notifications', 'payment_alerts'];
+    const updates = allowed.filter(f => req.body[f] !== undefined);
+    if (updates.length === 0) return res.status(400).json({ message: "No valid fields to update" });
+    const setClauses = updates.map(f => `${f} = ?`).join(', ');
+    const values = updates.map(f => req.body[f]);
+    db.prepare(`UPDATE admin_settings SET ${setClauses}, updated_at = ? WHERE id = 1`)
+      .run(...values, new Date().toISOString());
+    res.json({ message: "Settings updated successfully" });
+  } catch (error) {
+    console.error("Server error:", error);
+    res.status(500).json({ message: "Error updating settings", detail: error?.message || "Unknown error" });
   }
 });
 
